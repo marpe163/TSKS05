@@ -12,6 +12,7 @@ classdef kalmantracker
             
         Q=[]; %model noise
         R=[]; %measurement noise
+        G=[]; %Model for the noise of the motion model
         
         xk=[];
         Pk=[];
@@ -21,7 +22,7 @@ classdef kalmantracker
     end
     
     methods
-        function obj = kalmantracker(f,h,q,r,x0,p0)
+        function obj = kalmantracker(f,h,q,r,x0,p0,g)
             if nargin < 6
                error('Too few arguments given to the constructor') 
             end
@@ -31,10 +32,11 @@ classdef kalmantracker
            obj.R=r;           
            obj.xk=x0;
            obj.Pk=p0;
+           obj.G=g;
         end
         function obj=timeupdate(obj)
             obj.xk=obj.F*obj.xk;
-            obj.Pk=obj.F*obj.Pk*obj.F'+obj.Q;
+            obj.Pk=obj.F*obj.Pk*obj.F'+obj.G*obj.Q*obj.G';
         end
         function obj=measurementupdate(obj,yk)
             obj.y=[obj.y yk];

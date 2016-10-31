@@ -1,21 +1,37 @@
-x0=[15;0;0;0.2];
-p0=diag([0 0 2 2]);
+x0=[15;0;0;2];
+p0=0.1*diag([15 15 2 2]);
 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-Q=0.05*diag([1 1 2 2]);
+Q=0.1*diag([1 1 2 2]);
 H=[1 0 0 0;0 1 0 0];
-R=10*eye(2);
-kf=kalmantracker(F,H,Q,R,x0,p0);
+R=1*[1,0;0,1];
+G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
+kf=kalmantracker(F,H,Q,R,x0,p0,G);
 
 
-traj=[10+5*cos(0:0.01:6);0:0.01:6]
-meas=traj+0.8*randn(2,length(0:0.01:6));
+t=0:0.01:pi;
 
+traj=[10+5*cos(t);5*sin(t)];
+
+
+meas=traj+0.3*randn(2,length(t));
+estimate_covariances=[];
 for it=1:length(meas)
    kf=kf.measurementupdate(meas(:,it));
+   disp('meas')
+   kf.Pk
+   tmp=kf.Pk; %Save the current estimate uncertainty
+   tmp1=kf.xk %Save the current state estimate
    kf=kf.timeupdate();
+   disp('time')
+  
    
+   if(mod(it,20)==1)
+        estimate_covariances(:,:,it)=tmp1(1:2)+confidence_ellipse(tmp(1:2,1:2));
+        
+   end
 end
 figure
+
 tst=kf.trajectory;
 
 
@@ -23,8 +39,15 @@ plot(traj(1,:),traj(2,:),'r--')
 hold on
 plot(meas(1,:),meas(2,:),'go')
 
+
 plot(tst(1,:),tst(2,:),'b-')
-legend('Actual trajectory','Actual measurements','Estimated trajectory')
+for it=1:length(estimate_covariances)
+   plot(estimate_covariances(1,:,it),estimate_covariances(2,:,it),'b'); 
+end
+
+
+
+legend('Actual trajectory','Actual measurements','Estimated trajectory','Location','SouthWest')
 xlabel('x-pos')
 ylabel('y-pos')
 title('Verification Kalman filter implementation')
