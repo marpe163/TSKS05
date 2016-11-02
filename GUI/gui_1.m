@@ -69,7 +69,6 @@ dlg_title = 'Input';
 num_lines = 1;
 defaultans = {'1'};
 numoftags = inputdlg(prompt,dlg_title,num_lines,defaultans);
-handles.numoftags = numoftags;
 prompt = {'Enter the tag ID (one ID per line)'};
 dlg_title = 'Input';
 num_lines = str2double(numoftags);
@@ -124,11 +123,12 @@ if(get(handles.togglebutton1,'value'))
 %% for testing GUI   
 posx = 0;
 posy = 385/2;
-
 hold on 
 [oldx,oldy] = start_track(posx,posy);
 handles.start = 1;  %Update the GUI data
-end
+else
+    imshow(room.get_pic)
+end 
 %% Here is where our main function goes.
 while(get(handles.togglebutton1,'value'))
 
