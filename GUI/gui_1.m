@@ -61,15 +61,21 @@ function gui_1_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % Settup objects as fields within handles
-room = map('comsyshall2test.png');
-imshow(room.get_pic);
-handles.room = room;
+%;
+%handles.room = room;
 
-%prompt = {'Enter number of tags'};
-%dlg_title = 'Input';
-%num_lines = 1;
-%defaultans = {'20','hsv'};
-%answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+prompt = {'Enter number of tags'};
+dlg_title = 'Input';
+num_lines = 1;
+defaultans = {'1'};
+numoftags = inputdlg(prompt,dlg_title,num_lines,defaultans);
+handles.numoftags = numoftags;
+prompt = {'Enter the tag ID (one ID per line)'};
+dlg_title = 'Input';
+num_lines = str2double(numoftags);
+defaultans = {'tagID'};
+tagID = inputdlg(prompt,dlg_title,num_lines,defaultans);
+handles.tagID = tagID;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -103,43 +109,40 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+room = map('comsyshall2test.png'); % map class to keep track of tags and anchors
+imshow(room.get_pic)
 
-if isfield(handles,'room')
-     room = handles.room;
-     room.tag_list = [circle('red',5)];
+% pixelstorleken för bilden är 1771x385
+for i = 1 : length(handles.tagID{1}(:,1))
+    % This for loops ads the tags to the map
+    % circle is the class for making tags
+     room.tag_list = [room.tag_list circle('red',5,handles.tagID{1}(i,:))];
     
 end
-
 
 if(get(handles.togglebutton1,'value'))
 %% for testing GUI   
 posx = 0;
 posy = 385/2;
-%posvector = zeros(2,100000);
-%%
-handles.start = 1;  %Update the GUI data
-i = 1;
 
+hold on 
+[oldx,oldy] = start_track(posx,posy);
+handles.start = 1;  %Update the GUI data
 end
+%% Here is where our main function goes.
 while(get(handles.togglebutton1,'value'))
-[posx, posy] = start_track(posx,posy); % change to get data from processing module
-%posvector(:,i) = [posx ; posy];
+
+    [posx, posy] = start_track(oldx,oldy); % change to get data from processing module
+room.set_tag_pos(posx,(385 - posy),1); % gives the tag its position on the map 
+% todo: skale the map with the recievd data
+drawnow
+plot([oldx posx], [(385 - oldy) (385 - posy)],'b','parent',handles.axes6)
+oldx = posx;
+oldy = posy;
+ %Give the button callback a chance to interrupt the opening fucntion
 handles = guidata(hObject);
 
-room.set_tag_pos(posx,(385 - posy),1);
-%plot(posvector,'r','Linewidth',3,'parent',handles.axes2)
-drawnow %Give the button callback a chance to interrupt the opening fucntion
-%i = i + 1;
-%if(i == length(posvector))
-%i = 1;
-%end
-
-
-pause(0.2)
-
-
 end
-
 
 
 

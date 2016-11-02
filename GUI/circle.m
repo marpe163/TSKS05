@@ -7,13 +7,15 @@ classdef circle < handle
         Ypos
         on_img
         radius
+        ID
         
     end
     
     methods
-        function obj = circle(color,rad)
+        function obj = circle(color,rad,tagID)
         obj.on_img = rectangle('Curvature',[1 1],'Facecolor',color);
         obj.radius = rad;
+        obj.ID = tagID;
         end
         function set_pos(obj,x , y)   
                 obj.on_img.Position = [(x - obj.radius), (y - obj.radius), 2*obj.radius, 2*obj.radius];
