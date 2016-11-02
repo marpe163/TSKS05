@@ -7,6 +7,7 @@ classdef circle < handle
         Ypos
         on_img
         radius
+        
     end
     
     methods
@@ -14,11 +15,17 @@ classdef circle < handle
         obj.on_img = rectangle('Curvature',[1 1],'Facecolor',color);
         obj.radius = rad;
         end
-        function set_pos(obj ,x , y)   
-                obj.on_img.Position = [(x - obj.radius) (y - obj.radius) 2*obj.radius 2*obj.radius];
+        function set_pos(obj,x , y)   
+                obj.on_img.Position = [(x - obj.radius), (y - obj.radius), 2*obj.radius, 2*obj.radius];
+      
         end
-           % function draw
-       % end
+        function pic = get_pic(obj)
+        pic = obj.on_img;       
+        end
+       function delete(obj)
+       delete(obj.on_img)
+       
+       end
         
     
     end
