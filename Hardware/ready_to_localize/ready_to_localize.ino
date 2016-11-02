@@ -1,4 +1,4 @@
-// Please read the ready-to-localize tuturial together with this example.
+  // Please read the ready-to-localize tuturial together with this example.
 // https://www.pozyx.io/Documentation/Tutorials/ready_to_localize
 
 #include <Pozyx.h>
