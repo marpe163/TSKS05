@@ -4,9 +4,14 @@ function smoothed_trajectory = smooth_trajectory(N,wn,trajectory)
 %filter in order to obtain a smoother trajectory.
 
 [B,A]=butter(N,wn/2,'low');
-xfilt=filtfilt(B,A,trajectory(1,:));
-yfilt=filtfilt(B,A,trajectory(2,:));
-smoothed_trajectory=[xfilt;yfilt];
+if length(trajectory)>14
+    xfilt=filtfilt(B,A,trajectory(1,:));
+    yfilt=filtfilt(B,A,trajectory(2,:));
+    smoothed_trajectory=[xfilt;yfilt];
+else
+    smoothed_trajectory=trajectory;
+end
+
 
 end
 
