@@ -2,7 +2,7 @@
 
 x0 = [1;1];
 
-tag_pos = positioning(x0,10);
+tag_pos = positioning(x0,8);
 
 x1 = [2;2];
 tag_pos = tag_pos.update_position(x1);
