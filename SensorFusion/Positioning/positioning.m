@@ -34,7 +34,10 @@ classdef positioning
                 obj.saved_pos(:,obj.pos_to_save) = pos_input;
             end
         end
-            
+        
+        function mean_pos = calc_mean_pos(obj)
+            mean_pos = [mean(obj.saved_pos(1,:)) ; mean(obj.saved_pos(2,:))];
+        end
             
     end
     
