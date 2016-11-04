@@ -35,11 +35,11 @@ classdef positioning
             end
         end
         
-        function mean_pos = calc_mean_pos(obj)
-            mean_pos = [mean(obj.saved_pos(1,:)) ...    % Works like a
+        function moving_avg = moving_avarage(obj)
+            moving_avg = [mean(obj.saved_pos(1,:)) ...    % Works like a
                 ; mean(obj.saved_pos(2,:))];            % moving avarage
         end
-            
+        
     end
     
 end
