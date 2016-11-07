@@ -1,3 +1,5 @@
+
+
 function varargout = gui_1(varargin)
 % GUI_1 MATLAB code for gui_1.fig
 %      GUI_1, by itself, creates a new GUI_1 or raises the existing
@@ -22,7 +24,7 @@ function varargout = gui_1(varargin)
 
 % Edit the above text to modify the response to help gui_1
 
-% Last Modified by GUIDE v2.5 20-Sep-2016 19:45:09
+% Last Modified by GUIDE v2.5 31-Oct-2016 16:02:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -41,6 +43,7 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
+
 % End initialization code - DO NOT EDIT
 
 
@@ -53,10 +56,25 @@ function gui_1_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to gui_1 (see VARARGIN)
 
 % Choose default command line output for gui_1
+%init
+
 handles.output = hObject;
-imshow('comsyshall2test.png')
 
+% Settup objects as fields within handles
+%;
+%handles.room = room;
 
+prompt = {'Enter number of tags'};
+dlg_title = 'Input';
+num_lines = 1;
+defaultans = {'1'};
+numoftags = inputdlg(prompt,dlg_title,num_lines,defaultans);
+prompt = {'Enter the tag ID (one ID per line)'};
+dlg_title = 'Input';
+num_lines = str2double(numoftags);
+defaultans = {'tagID'};
+tagID = inputdlg(prompt,dlg_title,num_lines,defaultans);
+handles.tagID = tagID;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -84,33 +102,84 @@ title('Map of the Communications Systems corridor')
 varargout{1} = handles.output;
 
 
+
 % --- Executes on button press in togglebutton1.
 function togglebutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+room = map('comsyshall2test.png'); % map class to keep track of tags and anchors
+imshow(room.get_pic)
+
+% pixelstorleken för bilden är 1771x385
+for i = 1 : length(handles.tagID{1}(:,1))
+    % This for loops ads the tags to the map
+    % circle is the class for making tags
+     room.tag_list = [room.tag_list circle('red',5,handles.tagID{1}(i,:))];
+    
+end
 
 if(get(handles.togglebutton1,'value'))
-   
+%% for testing GUI   
 posx = 0;
 posy = 385/2;
+hold on 
+[oldx,oldy] = start_track(posx,posy);
 handles.start = 1;  %Update the GUI data
-pos = [posx 385 10 10]; % y start 737
-pos2 = [posx 385 10 10];
-circle_error = rectangle('Position',pos,'Curvature',[1 1],'Facecolor','blue');
-circle = rectangle('Position',pos,'Curvature',[1 1],'Facecolor','red');
+else
+    imshow(room.get_pic)
+end 
+%% Here is where our main function goes.
+%testdata = [1:10:10000 ; 192*ones(1,1000)];
+%testdata = testdata + 15*randn(2,1000);
+%tmp5=[];
+%temp = 1;
+%x0=[0;192;0;2];
+%p0=0.1*diag([15 15 2 2]);
+%F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
+%Q=0.005*diag([1 1 10 10]);
+%H=[1 0 0 0;0 1 0 0];
+%R=2*[1,0;0,1];
+%G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
+%kf=kalmantracker(F,H,Q,R,x0,p0,G);
+%trj=trajectory();
+while(get(handles.togglebutton1,'value'))
+%posx = testdata(1,temp);
+%posy = testdata(2,temp);
+%kf=kf.measurementupdate(testdata(:,temp));
+%   trj=trj.add_data(kf.xk);
+%   disp('meas')
+%   kf.Pk;
+%   tmp=kf.Pk; %Save the current estimate uncertainty
+%   tmp1=kf.xk %Save the current state estimate
+%   kf=kf.timeupdate();
+%   disp('time');
+%   tmp3=trj.traj;
+%   tmp4=kf.trajectory;
+%temp = temp + 1;
+
+%if length(tmp4)>20
+%tmp5=smooth_trajectory(5,0.1,tmp4);
+%end
+    [posx, posy] = start_track(oldx,oldy); % change to get data from processing module
+room.set_tag_pos(posx,(385 - posy),1); % gives the tag its position on the map 
+% todo: skale the map with the recievd data
+drawnow
+plot([oldx posx], [(385 - oldy) (385 - posy)],'b','parent',handles.axes6)
+%if length(tmp5)>0
+%   plot(tmp5(1,:),tmp5(2,:),'r-','parent',handles.axes6) 
+%end
+oldx = posx;
+oldy = posy;
+ %Give the button callback a chance to interrupt the opening fucntion
+handles = guidata(hObject);
+
 
 end
-while(get(handles.togglebutton1,'value'))
-[posx posy] = start_track(posx,posy);
-circle_error.Position = [(posx-5) (385 - posy - 5) 10 10];
-circle.Position = [(posx - 5) (385 - posy - 5) 10 10];
-drawnow %Give the button callback a chance to interrupt the opening fucntion
-handles = guidata(hObject);
-pause(0.1)
-end
+
 
 
 
 
 % Hint: get(hObject,'Value') returns toggle state of togglebutton1
+
