@@ -9,21 +9,11 @@ classdef map < handle
     end
     
     methods
-       % function obj = map(picture,tag)
-        
-       % obj.picture = picture;
-       % obj.tag_list = [tag];
-       % end
-        
-        function obj = map(picture)
-        
-        obj.picture = picture;
+        function obj = map(tag)
+        obj.tag_list = [tag];
         end
         function set_tag_pos(obj,x,y,index)
         obj.tag_list(index).set_pos(x,y);
-        end
-        function out = get_pic(obj)
-        out = obj.picture;
         end
     end
     
