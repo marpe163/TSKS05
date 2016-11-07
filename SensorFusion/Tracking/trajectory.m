@@ -7,11 +7,12 @@ classdef trajectory
         y=[]; %measurement data
         traj=[];%Trajectories
         counter=0;%
+        cutoff=0;
     end
     
     methods
-        function obj = trajectory()
-            
+        function obj = trajectory(cutoffFreq)
+            obj.cutoff=cutoffFreq;
         end
         function obj=add_data(obj,inp_data)
             
@@ -19,7 +20,7 @@ classdef trajectory
             
             if length(obj.y)-25>length(obj.traj)
                 
-               obj.traj=rt_smooth(obj.y,obj.traj);
+               obj.traj=rt_smooth(obj.y,obj.traj,obj.cutoff);
             
             end
             

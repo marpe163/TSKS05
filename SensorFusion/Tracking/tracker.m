@@ -26,11 +26,11 @@ classdef tracker
     end
     
     methods
-        function obj = tracker(opt,x0,p0,sample_freq)
+        function obj = tracker(opt,x0,p0,sample_freq,cutoff)
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
-                x0=[15;0;0;2];
+                x0=[0;0;-2;0];
                 p0=0.1*diag([15 15 2 2]);
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
                 Q=0.5*diag([1 1 10 10]);
@@ -40,7 +40,7 @@ classdef tracker
             end
             
             obj.kf=kalmantracker(F,H,Q,R,x0,p0,G);
-            obj.trj=trajectory();
+            obj.trj=trajectory(cutoff);
             obj.type=opt;
             
         end
