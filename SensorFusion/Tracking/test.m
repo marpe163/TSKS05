@@ -9,13 +9,7 @@ t=0:0.01:pi;
 traj=[10+5*cos(t);5*sin(t)];
 traj=[traj [5*cos(t);-5*sin(t)]];
 traj=data
-truetraj=[0:-1:-2000; zeros(1,length(0:-1:-2000))];
-truetraj=[truetraj [-2000*ones(1,length(0:-1:-6000));0:-1:-6000]];
-truetraj=[truetraj [-2000:1:-500;-6000*ones(1,length(-2000:1:-500))]];
-truetraj=[truetraj [-500*ones(1,length(-6000:1:-4500));-6000:1:-4500]];
-truetraj=[truetraj [-500:1:0;-4500*ones(1,length(-500:1:0))]];
-truetraj=[truetraj [zeros(1,length(-4500:1:0));-4500:1:0]];
-truetraj=truetraj*0.001;
+truetraj=[[0;0],[-2;0], [-2;-6],[-0.5;-6],[-0.5;-4.5],[0;-4.5],[0; 0]];
 
 meas=traj+0.3*randn(2,length(traj));
 estimate_covariances=[];
