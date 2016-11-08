@@ -1,8 +1,8 @@
 
-trk=tracker('cvcc',1,1,1,0.3);
-trk1=tracker('cvcc',1,1,1,0.2);
-trk2=tracker('cvcc',1,1,1,0.1);
-trk3=tracker('cvcc',1,1,1,0.05);
+trk=tracker('cvcc',1,1,1,0.2,'butter');
+trk1=tracker('cvcc',1,1,1,0.2,'cheby1');
+trk2=tracker('cvcc',1,1,1,0.2,'cheby2');
+
 
 t=0:0.01:pi;
 
@@ -24,12 +24,11 @@ for it=1:length(meas)
    trk=trk.add_data(meas(:,it));
    trk1=trk1.add_data(meas(:,it));
    trk2=trk2.add_data(meas(:,it));
-   trk3=trk3.add_data(meas(:,it));
    pos=trk.getPos()*0.001;
    traje=trk.getTraj()*0.001;
    traje1=trk1.getTraj()*0.001;
    traje2=trk2.getTraj()*0.001;
-   traje3=trk3.getTraj()*0.001;
+ 
    
    clf
    plot(pos(1),pos(2),'r*');
@@ -41,7 +40,7 @@ for it=1:length(meas)
    plot(traje(1,:),traje(2,:),'b')
    plot(traje1(1,:),traje1(2,:),'y')
    plot(traje2(1,:),traje2(2,:),'g')
-   plot(traje3(1,:),traje3(2,:),'m')
+   legend('true trajectory','KF estimated trajectory','butter','cheby1','cheby2');
    %legend('Raw KF trajectory','Smoothed trajectory','Location','SouthEast')
    end
    pause

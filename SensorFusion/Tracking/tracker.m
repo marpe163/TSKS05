@@ -21,26 +21,26 @@ classdef tracker
         kf=[]; %arbitrary filter that has measurement- and time update methods.
         trj=[];
         filterTraj=[];
-        type=''
+        type='';
         
     end
     
     methods
-        function obj = tracker(opt,x0,p0,sample_freq,cutoff)
+        function obj = tracker(opt,x0,p0,sample_freq,cutoff,filtertype)
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
                 x0=[0;0;-2;0];
                 p0=0.1*diag([15 15 2 2]);
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-                Q=0.5*diag([1 1 10 10]);
+                Q=0.005*diag([1 1 10 10]);
                 H=[1 0 0 0;0 1 0 0];
                 R=2*[1,0;0,1];
                 G=[1 0 tau^2/2 0;0 1 0 tau^2/2;0 0 tau 0; 0 0 0 tau];
             end
             
             obj.kf=kalmantracker(F,H,Q,R,x0,p0,G);
-            obj.trj=trajectory(cutoff);
+            obj.trj=trajectory(cutoff,filtertype);
             obj.type=opt;
             
         end
