@@ -13,6 +13,7 @@ This directory contains the following:
 - `CoordVarCovar`: Report coordinates, variances and covariances from Pozyx to Matlab.
 - `Ranging`: Report ranges from tag to anchors over serial port. 
 - `GenerateTestData`: Report coordinates from Pozyx to Matlab.
+- `Arduino`: Object-oriented interface in Matlab to communicate with Arduino over serial port, with example usage script.
 
 The following applications use the same Arduino code from `GenerateTestData`:
 
