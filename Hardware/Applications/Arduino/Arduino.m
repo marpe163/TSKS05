@@ -54,6 +54,13 @@ classdef Arduino < handle
             data = obj.DataPoints(:,obj.CurrrentDataPointIndex);
             obj.CurrrentDataPointIndex = obj.CurrrentDataPointIndex+1;
         end
+        function data = readLatest(obj)
+            % READLATEST Get the most recent data point.
+            %    Get the most recent data point and set
+            %    CurrentDataPointIndex to the next one
+            data = obj.DataPoints(:,obj.DataPointCount);
+            obj.CurrrentDataPointIndex = obj.DataPointCount+1;
+        end
         function push(obj, data)
             % PUSH Push data point.
             obj.DataPoints = [obj.DataPoints data];
