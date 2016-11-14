@@ -1,43 +1,63 @@
 classdef Arduino < handle
-    %ARDUINO Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    %ARDUINO A class that provides access to the Arduino board
+    %   An object of this class represent a connection to the Arduino
+    %   board. After initialization via Arduino(SerialPortName) the object
+    %   accumulates data from the serial port automatically for later
+    %   retrieval.
+
     properties
+        % The name of the serial port
+        %
+        % On Linux it looks like this:
+        %   '/dev/ttyS99'
+        %
+        % On Windows it looks like this:
+        %   'COM3'
         SerialPortName
+        % The serial port object to the Arduino board
         SerialPort
-        RawData
-        RawDataCount
-        CurrentPosition
+        % All data points received
+        DataPoints
+        % The number of data points received
+        DataPointCount
+        % The index that will be read next
+        CurrrentDataPointIndex
     end
     
     methods
-        % Constructor
         function obj = Arduino(name)
+            % ARDUINO Create and open the serial port.
+            %    A = ARDUINO(SerialPortName) creates and opens the serial
+            %    port. After this call DataPoints will start accumulate
+            %    automatically.
+            %
+            %    See Also Arduino.SerialPortName
             obj.SerialPortName = name;
             obj.SerialPort = serial(obj.SerialPortName,'BaudRate',115200);
             obj.SerialPort.Terminator = 'CR/LF';
             obj.SerialPort.BytesAvailableFcn = {@mycallback,obj};
-            obj.RawDataCount = 0;
-            obj.CurrentPosition = 1;
+            obj.DataPointCount = 0;
+            obj.CurrrentDataPointIndex = 1;
             fopen(obj.SerialPort);
         end
-        % Destructor
         function delete(obj)
+            % DELETE Close the serial port.
             fclose(obj.SerialPort);
         end
-        % Read data
         function data = read(obj)
+            % READ Get a data point and increment CurrentDataPointIndex.
+
             % WARNING: Possible bug if this branch not atomic!
-            if obj.CurrentPosition > obj.RawDataCount
-                waitfor(obj, 'RawDataCount', obj.CurrentPosition);
+            if obj.CurrrentDataPointIndex > obj.DataPointCount
+                waitfor(obj, 'DataPointCount', obj.CurrrentDataPointIndex);
             end
-            data = obj.RawData(:,obj.CurrentPosition);
-            obj.CurrentPosition = obj.CurrentPosition+1;
+            data = obj.DataPoints(:,obj.CurrrentDataPointIndex);
+            obj.CurrrentDataPointIndex = obj.CurrrentDataPointIndex+1;
         end
-        % Push data
         function push(obj, data)
-            obj.RawData = [obj.RawData data];
-            obj.RawDataCount = obj.RawDataCount+1;
+            % PUSH Push data point.
+            obj.DataPoints = [obj.DataPoints data];
+            obj.DataPointCount = obj.DataPointCount+1;
         end
     end
 end
