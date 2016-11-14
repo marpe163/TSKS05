@@ -46,6 +46,7 @@ classdef Arduino < handle
         end
         function data = read(obj)
             % READ Get a data point and increment CurrentDataPointIndex.
+            %    See Also Arduino.readLatest
 
             % WARNING: Possible bug if this branch not atomic!
             if obj.CurrrentDataPointIndex > obj.DataPointCount
@@ -57,7 +58,9 @@ classdef Arduino < handle
         function data = readLatest(obj)
             % READLATEST Get the most recent data point.
             %    Get the most recent data point and set
-            %    CurrentDataPointIndex to the next one
+            %    CurrentDataPointIndex to the next one.
+            %
+            %    See Also Arduino.read
             data = obj.DataPoints(:,obj.DataPointCount);
             obj.CurrrentDataPointIndex = obj.DataPointCount+1;
         end
