@@ -7,7 +7,7 @@ clear all;
 
 trk=tracker('cvcc',1,1,10,0.05);
 
-truetraj=[[0;0],[-2;0], [-2;-6],[-0.5;-6],[-0.5;-4.5],[0;-4.5],[0; 0]];
+truetraj=[[0;1],[4.45;1], [4.45;3],[2;5.5],[1;5.5],[0;1]];
 
 % This port should be created using the following command as root:
 %     ln -s /dev/ttyACM0 /dev/ttyS99
@@ -30,14 +30,14 @@ for i = 1:10000
     if mod(i,5)==0
     clf
     plot(truetraj(1,:),truetraj(2,:),'--k');
-    axis([-5 5 -8 6])
+    axis([-2 6 -1 6.5])
     hold on
     plot(pos(1),pos(2),'r*');
     if length(traje) > 0
         tmp=trk.filterTraj*0.001;
         plot(tmp(1,:),tmp(2,:),'r:')
         plot(traje(1,:),traje(2,:),'b')
-        axis([-5 5 -8 6])
+        axis([-2 6 -1 6.5])
     end
     
     drawnow
