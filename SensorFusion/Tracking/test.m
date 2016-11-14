@@ -1,6 +1,7 @@
 
 trk=tracker('ekfctcc',1,1,1,0.05,'butter');
 trk1=tracker('cvcc',1,1,1,0.05,'butter');
+trk2=tracker('cvcc',1,1,1,0.05,'butter');
 
 
 
