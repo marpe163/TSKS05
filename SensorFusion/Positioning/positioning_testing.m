@@ -216,6 +216,90 @@ Moving_avarage_time = toc
     % test without plotting in the loop: toc = 0.1028 seconds
     % dataset: '20161107_02_java.mat'
    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Only moving avarage, (without kf) plotting in every step %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all
+
+
+load('20161114commsyscorridor1.mat')
+trk=tracker_moving_avarage('cvcc',1,1,1);
+
+truetraj=[[0;1],[4.45;1], [4.45;3],[2;5.5],[1;5.5],[0;1]];
+
+estimate_covariances=[];
+
+tag_pos = positioning(data(:,2)*0.001,20);
+mean_vector = zeros(2,length(data));
+tic
+for it=1:length(data)
+    
+   tag_pos = tag_pos.update_position(data(1:2,it)*0.001);
+   current_mean = tag_pos.moving_avarage();
+   mean_vector(:,it) = tag_pos.moving_avarage();
    
+  figure(2);
+   plot(truetraj(1,:),truetraj(2,:),'--k')
+   hold on
    
+   plot(data(1,1:it)*0.001,data(2,1:it)*0.001,'r:')
+   plot(mean_vector(1,1:it),mean_vector(2,1:it),'b')
+   plot(current_mean(1),current_mean(2),'g*')
+   legend('true trajectory','"Raw" data','moving avarage','current pos');
    
+   axis([-1 6 -1 7])
+   
+   hold off
+   
+   pause(1/10)
+end
+
+
+Moving_avarage_time = toc
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Test with only butter filtering, (without kf) %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all
+
+% Fixa denna sen
+load('20161114commsyscorridor1.mat')
+trk=tracker('cvcc',1,1,1,0.2,'butter');
+
+traj=data;
+truetraj=[[0;0],[-2;0], [-2;-6],[-0.5;-6],[-0.5;-4.5],[0;-4.5],[0; 0]];
+
+meas = data;
+estimate_covariances=[];
+
+tic
+for it=1:length(meas)
+   trk=trk.add_data(meas(:,it));
+   pos=trk.getPos()*0.001;
+   traje=trk.getTraj()*0.001;
+   
+   tmp=trk.filterTraj*0.001;
+   
+   if  length(traje) > 0
+        tmp=trk.filterTraj*0.001;
+   end
+
+end
+
+
+Butter_filtered_time = toc
+
+
+    figure(1);
+    plot(truetraj(1,:),truetraj(2,:),'--k')
+    hold on
+    plot(tmp(1,:),tmp(2,:),'r:')
+    plot(traje(1,:),traje(2,:),'b')
+    legend('true trajectory','KF est traj','butter');
+
+    % Test of how much time butter filtering takes
+    % test without plotting in the loop: toc = 0.2309 seconds
+    % dataset: '20161107_02_java.mat'
+    
+    
+    
