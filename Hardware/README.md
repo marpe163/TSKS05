@@ -26,6 +26,8 @@ The following applications use the same Arduino code from `GenerateTestData`:
 
 ## Notes regarding Matlab on Linux
 
+There are lots of problems when running Matlab on Linux.
+
 ### Detecting serial port
 
 On Linux, the following command should be run as root before starting Matlab.
@@ -37,3 +39,11 @@ where `/dev/ttyACM0` is the name of the Arduino device and `/dev/ttyS99` is an a
 ### File lock on the serial port
 
 If `fclose` is not called on the serial port, and you lose the handle to it, simply restart Matlab to get access to the port again. Most of the Matlab code make sure to do this when the handle exists, but beware when you clear the workspace!
+
+### UI problems with multiple windows
+
+If you find your mouse clicking through figure and popup windows: (this is hard to explain, but you will know when you encounter this)
+
+This may be a bug of Matlab on Linux. A workaround is to remove other keyboard layouts except the one you are using.
+
+See also: https://josm.openstreetmap.de/ticket/10430#comment:16
