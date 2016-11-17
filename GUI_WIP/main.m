@@ -9,7 +9,9 @@ Xoffset = 2;
 Yoffset = 4.5;
 
 %% Create window
-f = figure;
+f = figure('Position', [30, 30, 600, 600]);
+t = TestFile('20161114commsyscorridor1.mat');
+f.DeleteFcn = @(~,~)t.delete;
 
 %% Create map panel
 mapPanel = uipanel();
@@ -33,9 +35,9 @@ image.YData = [0*scale-Yoffset size(imageData,1)*scale-Yoffset];
 mapAxes.YDir = 'normal';
 
 %% Plot some test data
-load('20161114commsyscorridor1.mat', 'data');
-data = data / 1000; % convert millimiters to meters
-plot(mapAxes, data(1,:), data(2,:), '-O');
+% load('20161114commsyscorridor1.mat', 'data');
+% data = data / 1000; % convert millimiters to meters
+% plot(mapAxes, data(1,:), data(2,:), '-O');
 axis(mapAxes, [-5 20 -5 8]);
 
 %% Create option panel
@@ -56,3 +58,10 @@ filterMenu = uicontrol('Style','popup');
 filterMenu.Parent = optionPanel;
 filterMenu.Position = [80 0 180 25];
 filterMenu.String = {'No Filter','Kalman Filter','Extended Kalman Filter'};
+
+% Create start button
+startButton = uicontrol('Style','pushbutton');
+startButton.Parent = optionPanel;
+startButton.Position = [80 30 180 25];
+startButton.String = 'Start';
+startButton.Callback = @(~,~)t.startPlotting(mapAxes);
