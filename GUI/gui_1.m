@@ -123,6 +123,7 @@ if(get(handles.togglebutton1,'value'))
 %% for testing GUI   
 posx = 0;
 posy = 385/2;
+posz = 0;
 hold on 
 [oldx,oldy] = start_track(posx,posy);
 handles.start = 1;  %Update the GUI data
@@ -130,45 +131,55 @@ else
     imshow(room.get_pic)
 end 
 %% Here is where our main function goes.
-%testdata = [1:10:10000 ; 192*ones(1,1000)];
-%testdata = testdata + 15*randn(2,1000);
-%tmp5=[];
-%temp = 1;
-%x0=[0;192;0;2];
-%p0=0.1*diag([15 15 2 2]);
-%F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-%Q=0.005*diag([1 1 10 10]);
-%H=[1 0 0 0;0 1 0 0];
-%R=2*[1,0;0,1];
-%G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
-%kf=kalmantracker(F,H,Q,R,x0,p0,G);
-%trj=trajectory();
-while(get(handles.togglebutton1,'value'))
-%posx = testdata(1,temp);
-%posy = testdata(2,temp);
-%kf=kf.measurementupdate(testdata(:,temp));
-%   trj=trj.add_data(kf.xk);
-%   disp('meas')
-%   kf.Pk;
-%   tmp=kf.Pk; %Save the current estimate uncertainty
-%   tmp1=kf.xk %Save the current state estimate
-%   kf=kf.timeupdate();
-%   disp('time');
-%   tmp3=trj.traj;
-%   tmp4=kf.trajectory;
-%temp = temp + 1;
-
-%if length(tmp4)>20
-%tmp5=smooth_trajectory(5,0.1,tmp4);
+testdata = [1:10:10000 ; 192*ones(1,1000)];
+testdata = testdata + 15*randn(2,1000);
+tmp5=[];
+temp = 1;
+x0=[0;192;0;2];
+p0=0.1*diag([15 15 2 2]);
+F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
+Q=0.005*diag([1 1 10 10]);
+H=[1 0 0 0;0 1 0 0];
+R=2*[1,0;0,1];
+G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
+kf=kalmantracker(F,H,Q,R,x0,p0,G);
+trj=trajectory();
+% INIT aurduino
+%if ~exist('a','var') || ~isvalid(a)
+%     %Open the serial port connection
+%    a = Arduino('COM3');
 %end
-    [posx, posy] = start_track(oldx,oldy); % change to get data from processing module
+handles.start = 1;  %Update the GUI data
+%% Main loop
+while(get(handles.togglebutton1,'value'))
+%    data = a.read;
+posx = testdata(1,temp);%data(1); %
+posy = testdata(2,temp); %data(2); %
+%posz = data(3);
+%
+kf=kf.measurementupdate(testdata(:,temp));
+   trj=trj.add_data(kf.xk);
+   disp('meas')
+   kf.Pk;
+   tmp=kf.Pk; %Save the current estimate uncertainty
+   tmp1=kf.xk; %Save the current state estimate
+   kf=kf.timeupdate();
+   disp('time');
+   tmp3=trj.traj;
+   tmp4=kf.trajectory;
+temp = temp + 1;
+
+if length(tmp4)>20
+tmp5=smooth_trajectory(5,0.1,tmp4);
+end
+   % [posx, posy] = start_track(oldx,oldy); % change to get data from processing module
 room.set_tag_pos(posx,(385 - posy),1); % gives the tag its position on the map 
 % todo: skale the map with the recievd data
 drawnow
 plot([oldx posx], [(385 - oldy) (385 - posy)],'b','parent',handles.axes6)
-%if length(tmp5)>0
-%   plot(tmp5(1,:),tmp5(2,:),'r-','parent',handles.axes6) 
-%end
+if length(tmp5)>0
+   plot(tmp5(1,:),tmp5(2,:),'r-','parent',handles.axes6) 
+end
 oldx = posx;
 oldy = posy;
  %Give the button callback a chance to interrupt the opening fucntion
