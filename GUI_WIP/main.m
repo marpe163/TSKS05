@@ -10,8 +10,6 @@ Yoffset = 4.5;
 
 %% Create window
 f = figure('Position', [30, 30, 600, 600]);
-t = TestFile('20161114commsyscorridor1.mat');
-f.DeleteFcn = @(~,~)t.delete;
 
 %% Create map panel
 mapPanel = uipanel();
@@ -33,12 +31,6 @@ image.Parent = mapAxes;
 image.XData = [0*scale-Xoffset size(imageData,2)*scale-Xoffset];
 image.YData = [0*scale-Yoffset size(imageData,1)*scale-Yoffset];
 mapAxes.YDir = 'normal';
-
-%% Plot some test data
-% load('20161114commsyscorridor1.mat', 'data');
-% data = data / 1000; % convert millimiters to meters
-% plot(mapAxes, data(1,:), data(2,:), '-O');
-axis(mapAxes, [-5 20 -5 8]);
 
 %% Create option panel
 optionPanel = uipanel();
@@ -64,4 +56,16 @@ startButton = uicontrol('Style','pushbutton');
 startButton.Parent = optionPanel;
 startButton.Position = [80 30 180 25];
 startButton.String = 'Start';
-startButton.Callback = @(~,~)t.startPlotting(mapAxes);
+
+% Create pause button
+pauseButton = uicontrol('Style','pushbutton');
+pauseButton.Parent = optionPanel;
+pauseButton.Position = [260 30 180 25];
+pauseButton.String = 'Pause';
+
+%% Plot some test data
+t = TestFile('20161114commsyscorridor1.mat');
+f.DeleteFcn = @(~,~)t.delete;
+startButton.Callback = @(~,~)t.plot(mapAxes);
+pauseButton.Callback = @(~,~)t.togglePlotting;
+axis(mapAxes, [-5 20 -5 8]);
