@@ -28,20 +28,24 @@ classdef TestFile < handle
             %PLOT Plot data on the axes.
             obj.PlotPaused = false;
             try
+                % Create animate line object
+                hLine = animatedline(ax);
                 % Print the first point
-                plotDataPoint(ax,1,obj.data,obj.time);
+                plotDataPoint(hLine,1,obj.data,obj.time);
                 startTime = datetime;
                 % Print the following points with delay
                 for i=2:obj.DataPointCount
                     % Check if plotting is paused
-                    waitfor(obj, 'PlotPaused', false);
+                    if obj.PlotPaused
+                        waitfor(obj, 'PlotPaused', false);
+                    end
                     % Wait if we are ahead of time
                     elapsed = datetime - startTime;
                     if obj.time(1) + elapsed < obj.time(i)
                         leadTime = obj.time(i) - obj.time(1) - elapsed;
                         pause(seconds(leadTime));
                     end
-                    plotDataPoint(ax,i,obj.data,obj.time);
+                    plotDataPoint(hLine,i,obj.data,obj.time);
                 end
             catch ME
                 % The figure might be closed when plotting
@@ -66,7 +70,10 @@ classdef TestFile < handle
     end
 end
 
-function plotDataPoint(ax,i,data,time)
-    plot(ax,data(1,i),data(2,i),'x');
-    title(ax, datestr(time(i)));
+function plotDataPoint(hLine,i,data,time)
+    % Add the data point to the animated line
+    addpoints(hLine,data(1,i),data(2,i));
+    drawnow
+    % Display current time in the title
+    title(hLine.Parent, datestr(time(i)));
 end
