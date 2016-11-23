@@ -27,21 +27,33 @@ classdef TestFile < handle
         function plot(obj, ax)
             %PLOT Plot data on the axes.
             obj.PlotPaused = false;
-            delta = diff(obj.time);
             try
+                % Create animate line object
+                hLine = animatedline(ax);
                 % Print the first point
-                plotDataPoint(ax,1,obj.data,obj.time);
+                plotDataPoint(hLine,1,obj.data,obj.time);
+                startTime = datetime;
                 % Print the following points with delay
                 for i=2:obj.DataPointCount
-                    pause(seconds(delta(i-1)));
-                    plotDataPoint(ax,i,obj.data,obj.time);
                     % Check if plotting is paused
-                    waitfor(obj, 'PlotPaused', false);
+                    if obj.PlotPaused
+                        tic
+                        waitfor(obj, 'PlotPaused', false);
+                        % Resume the timing
+                        startTime = startTime + seconds(toc);
+                    end
+                    % Wait if we are ahead of time
+                    elapsed = datetime - startTime;
+                    if obj.time(1) + elapsed < obj.time(i)
+                        leadTime = obj.time(i) - obj.time(1) - elapsed;
+                        pause(seconds(leadTime));
+                    end
+                    plotDataPoint(hLine,i,obj.data,obj.time);
                 end
             catch ME
                 % The figure might be closed when plotting
                 if strcmp(ME.identifier, 'MATLAB:class:InvalidHandle')
-                    disp('The figure is closed, stop plotting.');
+                    % disp('The figure is closed, stop plotting.');
                 else
                     disp('Unexpected exception:');
                     disp(['  identifier: ', ME.identifier]);
@@ -61,7 +73,10 @@ classdef TestFile < handle
     end
 end
 
-function plotDataPoint(ax,i,data,time)
-    plot(ax,data(1,i),data(2,i),'x');
-    title(ax, datestr(time(i)));
+function plotDataPoint(hLine,i,data,time)
+    % Add the data point to the animated line
+    addpoints(hLine,data(1,i),data(2,i));
+    drawnow
+    % Display current time in the title
+    title(hLine.Parent, datestr(time(i)));
 end
