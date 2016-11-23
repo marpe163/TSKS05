@@ -44,10 +44,10 @@ classdef TestFile < handle
                 for i=2:obj.DataPointCount
                     % Check if plotting is paused or stopped
                     if strcmp(obj.State, 'paused')
-                        tic
+                        pauseTime = datetime;
                         waitfor(obj, 'State', 'plotting');
                         % Resume the timing
-                        startTime = startTime + seconds(toc);
+                        startTime = startTime + (datetime - pauseTime);
                     end
                     if strcmp(obj.State, 'stopped')
                         return
