@@ -41,7 +41,7 @@ classdef TestFile < handle
             catch ME
                 % The figure might be closed when plotting
                 if strcmp(ME.identifier, 'MATLAB:class:InvalidHandle')
-                    disp('The figure is closed, stop plotting.');
+                    % disp('The figure is closed, stop plotting.');
                 else
                     disp('Unexpected exception:');
                     disp(['  identifier: ', ME.identifier]);
