@@ -37,7 +37,10 @@ classdef TestFile < handle
                 for i=2:obj.DataPointCount
                     % Check if plotting is paused
                     if obj.PlotPaused
+                        tic
                         waitfor(obj, 'PlotPaused', false);
+                        % Resume the timing
+                        startTime = startTime + seconds(toc);
                     end
                     % Wait if we are ahead of time
                     elapsed = datetime - startTime;
