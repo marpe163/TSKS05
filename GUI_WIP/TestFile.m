@@ -27,16 +27,21 @@ classdef TestFile < handle
         function plot(obj, ax)
             %PLOT Plot data on the axes.
             obj.PlotPaused = false;
-            delta = diff(obj.time);
             try
                 % Print the first point
                 plotDataPoint(ax,1,obj.data,obj.time);
+                startTime = datetime;
                 % Print the following points with delay
                 for i=2:obj.DataPointCount
-                    pause(seconds(delta(i-1)));
-                    plotDataPoint(ax,i,obj.data,obj.time);
                     % Check if plotting is paused
                     waitfor(obj, 'PlotPaused', false);
+                    % Wait if we are ahead of time
+                    elapsed = datetime - startTime;
+                    if obj.time(1) + elapsed < obj.time(i)
+                        leadTime = obj.time(i) - obj.time(1) - elapsed;
+                        pause(seconds(leadTime));
+                    end
+                    plotDataPoint(ax,i,obj.data,obj.time);
                 end
             catch ME
                 % The figure might be closed when plotting
