@@ -4,8 +4,10 @@ classdef TestFile < handle
         FileName
         % The number of data points received
         DataPointCount
-        % Plotting or paused
-        PlotPaused
+        % Indicates the state of plotting
+        State
+        % The handle to animated line
+        Line matlab.graphics.animation.AnimatedLine
         data
         time
     end
@@ -17,30 +19,38 @@ classdef TestFile < handle
             obj.data = s.data / 1000;
             obj.time = datetime(s.time')';
             obj.DataPointCount = size(obj.data,2);
+            % Create animate line object
+            obj.Line = animatedline;
+            % Initial state is not plotting
+            obj.State = 'stopped';
         end
         function delete(obj)
             %DELETE Destructor for the class.
             %
             % Avoid getting stuck in the paused state
-            obj.PlotPaused = false;
+            obj.State = 'stopped';
         end
         function plot(obj, ax)
             %PLOT Plot data on the axes.
-            obj.PlotPaused = false;
+            obj.clearPlot;
+            obj.State = 'plotting';
             try
-                % Create animate line object
-                hLine = animatedline(ax);
+                % Attach line to the axes
+                obj.Line.Parent = ax;
                 % Print the first point
-                plotDataPoint(hLine,1,obj.data,obj.time);
+                plotDataPoint(obj.Line,1,obj.data,obj.time);
                 startTime = datetime;
                 % Print the following points with delay
                 for i=2:obj.DataPointCount
-                    % Check if plotting is paused
-                    if obj.PlotPaused
+                    % Check if plotting is paused or stopped
+                    if strcmp(obj.State, 'paused')
                         tic
-                        waitfor(obj, 'PlotPaused', false);
+                        waitfor(obj, 'State', 'plotting');
                         % Resume the timing
                         startTime = startTime + seconds(toc);
+                    end
+                    if strcmp(obj.State, 'stopped')
+                        return
                     end
                     % Wait if we are ahead of time
                     elapsed = datetime - startTime;
@@ -48,7 +58,7 @@ classdef TestFile < handle
                         leadTime = obj.time(i) - obj.time(1) - elapsed;
                         pause(seconds(leadTime));
                     end
-                    plotDataPoint(hLine,i,obj.data,obj.time);
+                    plotDataPoint(obj.Line,i,obj.data,obj.time);
                 end
             catch ME
                 % The figure might be closed when plotting
@@ -64,11 +74,16 @@ classdef TestFile < handle
         end
         function togglePlotting(obj)
             %TOGGLEPLOTTING Pause or resume plotting.
-            if obj.PlotPaused
-                obj.PlotPaused = false;
-            else
-                obj.PlotPaused = true;
+            if strcmp(obj.State, 'plotting')
+                obj.State= 'paused';
+            elseif strcmp(obj.State, 'paused')
+                obj.State = 'plotting';
             end
+        end
+        function clearPlot(obj)
+            %CLEARPLOT Clear the plot.
+            obj.State = 'stopped';
+            obj.Line.clearpoints;
         end
     end
 end

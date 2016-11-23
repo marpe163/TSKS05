@@ -63,9 +63,16 @@ pauseButton.Parent = optionPanel;
 pauseButton.Position = [260 30 180 25];
 pauseButton.String = 'Pause';
 
+% Create clear button
+clearButton = uicontrol('Style','pushbutton');
+clearButton.Parent = optionPanel;
+clearButton.Position = [440 30 180 25];
+clearButton.String = 'Clear';
+
 %% Plot some test data
 t = TestFile('20161114commsyscorridor1.mat');
 f.DeleteFcn = @(~,~)t.delete;
 startButton.Callback = @(~,~)t.plot(mapAxes);
 pauseButton.Callback = @(~,~)t.togglePlotting;
+clearButton.Callback = @(~,~)t.clearPlot;
 axis(mapAxes, [-5 20 -5 8]);
