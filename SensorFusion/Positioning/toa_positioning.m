@@ -5,17 +5,17 @@ function xopt=toa_positioning(sensor_positions, ranges,grid)
 %minima. Note that the execution time is proportional to the square of the
 %length of the grid vector.
 %
-% %Example:
-% traj=[cos(0:0.05:2*pi);sin(0:0.05:2*pi)]
-% traj=[traj;linspace(0,1,length(0:0.05:2*pi))];
-% senspos=[0 0 0; 0 1 0;0 0 1; 1 0 0]
+% % %Example:
+% traj=[cos(0:0.05:6*pi);sin(0:0.05:6*pi)]
+% traj=[traj;linspace(0,4,length(0:0.05:6*pi))];
+% senspos=[0 0 0; 0 5 0;0 0 5; 5 5 5]
 % dist=zeros(4,length(traj));
 % for it=1:length(traj)
 %     
 %    dist(1,it)=sqrt((traj(1,it)-senspos(1,1))^2 +(traj(2,it)-senspos(1,2))^2+(traj(3,it)-senspos(1,3))^2);
 %    dist(2,it)=sqrt((traj(1,it)-senspos(2,1))^2 +(traj(2,it)-senspos(2,2))^2+(traj(3,it)-senspos(2,3))^2);
-%    dist(3,it)=sqrt((traj(1,it)-senspos(3,1))^2 +(traj(2,it)-senspos(3,2))^2)+(traj(3,it)-senspos(3,3))^2;
-%    dist(4,it)=sqrt((traj(1,it)-senspos(4,1))^2 +(traj(2,it)-senspos(4,2))^2)+(traj(3,it)-senspos(4,3))^2; 
+%    dist(3,it)=sqrt((traj(1,it)-senspos(3,1))^2 +(traj(2,it)-senspos(3,2))^2+(traj(3,it)-senspos(3,3))^2);
+%    dist(4,it)=sqrt((traj(1,it)-senspos(4,1))^2 +(traj(2,it)-senspos(4,2))^2+(traj(3,it)-senspos(4,3))^2); 
 % end
 % 
 % dist=dist+0.05*randn(size(dist));
