@@ -1,6 +1,7 @@
 classdef positioning
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    % Positioning using the moving avarage or the estimated position
+    % can also be used for tracking of the tag, plotting the moving
+    % avarages
     
     properties
         current_pos = [];   % vector 2x1
