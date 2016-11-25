@@ -257,6 +257,9 @@ end
 
 Moving_avarage_time = toc
 
+    % Test with data: 20161114commsyscorridor1.mat
+    % Moving_avarage_time = 0.0882
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Test with only butter filtering, (without kf) %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -264,42 +267,45 @@ clear all
 
 % Fixa denna sen
 load('20161114commsyscorridor1.mat')
-trk=tracker('cvcc',1,1,1,0.2,'butter');
+%trk=tracker('cvcc',1,1,1,0.2,'butter');
 
-traj=data;
-truetraj=[[0;0],[-2;0], [-2;-6],[-0.5;-6],[-0.5;-4.5],[0;-4.5],[0; 0]];
+walking_traj = trajectory(0.05);
 
-meas = data;
-estimate_covariances=[];
+
+truetraj=[[0;1],[4.45;1], [4.45;3],[2;5.5],[1;5.5],[0;1]];
+
 
 tic
-for it=1:length(meas)
-   trk=trk.add_data(meas(:,it));
-   pos=trk.getPos()*0.001;
-   traje=trk.getTraj()*0.001;
+for it=1:length(data)
+   walking_traj = walking_traj.add_data(data(:,it));
    
-   tmp=trk.filterTraj*0.001;
-   
-   if  length(traje) > 0
-        tmp=trk.filterTraj*0.001;
+   figure(3);
+   if isempty(walking_traj.traj)
+       plot(truetraj(1,:),truetraj(2,:),'--k')
+       hold on
+       plot(data(1,1:it)*0.001,data(2,1:it)*0.001,'r:')    
+       legend('true trajectory','"Raw" data');
+       axis([-1 6 -1 7])
+       hold off
+   else
+       plot(truetraj(1,:),truetraj(2,:),'--k')
+       hold on
+       plot(data(1,1:it)*0.001,data(2,1:it)*0.001,'r:')    
+       plot(walking_traj.traj(1,1:end)*0.001,walking_traj.traj(2,1:end)*0.001)
+       legend('true trajectory','"Raw" data','Butter smooth');
+       axis([-1 6 -1 7])
+       hold off
    end
-
+        
+        
+   pause(1/10)
 end
 
 
 Butter_filtered_time = toc
 
-
-    figure(1);
-    plot(truetraj(1,:),truetraj(2,:),'--k')
-    hold on
-    plot(tmp(1,:),tmp(2,:),'r:')
-    plot(traje(1,:),traje(2,:),'b')
-    legend('true trajectory','KF est traj','butter');
-
-    % Test of how much time butter filtering takes
-    % test without plotting in the loop: toc = 0.2309 seconds
-    % dataset: '20161107_02_java.mat'
+    % Test with data: 20161114commsyscorridor1.mat
+    % Butter_filtered_time = 0.3022
     
     
     
