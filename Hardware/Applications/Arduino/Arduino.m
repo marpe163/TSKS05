@@ -61,6 +61,11 @@ classdef Arduino < handle
             %    CurrentDataPointIndex to the next one.
             %
             %    See Also Arduino.read
+
+            % WARNING: Possible bug if this branch not atomic!
+            if obj.DataPointCount < 1
+                waitfor(obj, 'DataPointCount', 1);
+            end
             data = obj.DataPoints(:,obj.DataPointCount);
             obj.CurrrentDataPointIndex = obj.DataPointCount+1;
         end
