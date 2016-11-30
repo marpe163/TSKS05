@@ -30,10 +30,10 @@ classdef tracker
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
-                x0=[0;0;-2;0];
+                x0=[3;3;0;0];
                 p0=0.1*diag([15 15 2 2]);
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-                Q=0.0005*diag([1 1 10 10]);
+                Q=1*diag([1 1 10 10]);
                 H=[1 0 0 0;0 1 0 0];
                 R=10*[1,0;0,1];
                 G=[1 0 tau^2/2 0;0 1 0 tau^2/2;0 0 tau 0; 0 0 0 tau];
