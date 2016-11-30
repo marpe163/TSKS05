@@ -22,10 +22,12 @@ classdef Arduino < handle
         DataPointCount
         % The index that will be read next
         CurrrentDataPointIndex
+        % The format string for each line of data
+        DataFormat
     end
     
     methods
-        function obj = Arduino(name)
+        function obj = Arduino(name, format)
             % ARDUINO Create and open the serial port.
             %    A = ARDUINO(SerialPortName) creates and opens the serial
             %    port. After this call DataPoints will start accumulate
@@ -36,6 +38,7 @@ classdef Arduino < handle
             obj.SerialPort = serial(obj.SerialPortName,'BaudRate',115200);
             obj.SerialPort.Terminator = 'CR/LF';
             obj.SerialPort.BytesAvailableFcn = {@mycallback,obj};
+            obj.DataFormat = format;
             obj.DataPointCount = 0;
             obj.CurrrentDataPointIndex = 1;
             fopen(obj.SerialPort);
@@ -78,6 +81,6 @@ classdef Arduino < handle
 end
 
 function mycallback(obj, event, arduino)
-    data = fscanf(obj, '%d %d %d');
+    data = fscanf(obj, arduino.DataFormat);
     arduino.push(data);
 end

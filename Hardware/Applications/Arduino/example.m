@@ -5,7 +5,7 @@
 
 if ~exist('a','var') || ~isvalid(a)
     % Open the serial port connection
-    a = Arduino('/dev/ttyS99');
+    a = Arduino('/dev/ttyS99', '%d %d %d %d %d %d %d');
 end
 
 for i=1:50

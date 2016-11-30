@@ -5,7 +5,7 @@ senspos=[4.95 7 1; -2.55 7 1; 4.95 0 1.6; 0 0 1.25];
 
 if ~exist('a','var') || ~isvalid(a)
     % Open the serial port connection
-    a = Arduino('/dev/ttyS99');
+    a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d');
 end
 
 pos = [];
