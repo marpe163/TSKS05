@@ -133,6 +133,8 @@ end
 %% Here is where our main function goes.
 testdata = [1:10:10000 ; 192*ones(1,1000)];
 testdata = testdata + 15*randn(2,1000);
+s = load(filename);
+            obj.data = s.data / 1000;
 tmp5=[];
 temp = 1;
 x0=[0;192;0;2];
@@ -143,7 +145,7 @@ H=[1 0 0 0;0 1 0 0];
 R=2*[1,0;0,1];
 G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
 kf=kalmantracker(F,H,Q,R,x0,p0,G);
-trj=trajectory();
+trj=trajectory(0.1,'butter');
 % INIT aurduino
 %if ~exist('a','var') || ~isvalid(a)
 %     %Open the serial port connection
