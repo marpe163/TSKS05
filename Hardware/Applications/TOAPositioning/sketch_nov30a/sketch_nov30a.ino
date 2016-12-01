@@ -2,6 +2,8 @@
 #include <Pozyx_definitions.h>
 #include <Wire.h>
 
+#include <inttypes.h>
+
 #define NUM_ANCHORS 4
 uint8_t num_anchors = NUM_ANCHORS;
 uint16_t anchors[NUM_ANCHORS]  = {0x6078, 0x603F, 0x6050, 0x6000};
@@ -47,17 +49,16 @@ void loop() {
     device_range_t range;
     Pozyx.doRanging(anchors[i], &range); // THIS IS FOR MORE THAN 4 ANCHORS
     Pozyx.getDeviceRangeInfo(anchors[i], &range);
-    sprintf(buf, "%u ", range.distance);
+    sprintf(buf, "%" PRIu32 " ", range.distance);
     Serial.print(buf);
   }
   Serial.println();
 }
 
 void printCoord(coordinates_t* coor) {
-  sprintf(buf, "%i ", coor->x);
-  Serial.print(buf);
-  sprintf(buf, "%i ", coor->y);
-  Serial.print(buf);
-  sprintf(buf, "%i ", coor->z);
+  sprintf(
+    buf,
+    "%" PRIi32 " %" PRIi32 " %" PRIi32 " ",
+    coor->x, coor->y, coor->z);
   Serial.print(buf);
 }
