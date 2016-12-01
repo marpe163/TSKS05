@@ -24,16 +24,16 @@ function varargout = gui_1(varargin)
 
 % Edit the above text to modify the response to help gui_1
 
-% Last Modified by GUIDE v2.5 31-Oct-2016 16:02:42
+% Last Modified by GUIDE v2.5 01-Dec-2016 14:50:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @gui_1_OpeningFcn, ...
-                   'gui_OutputFcn',  @gui_1_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @gui_1_OpeningFcn, ...
+    'gui_OutputFcn',  @gui_1_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -60,31 +60,61 @@ function gui_1_OpeningFcn(hObject, eventdata, handles, varargin)
 
 handles.output = hObject;
 
-% Settup objects as fields within handles
-%;
-%handles.room = room;
 
-prompt = {'Enter number of tags'};
+
+%% Startup input dialog
+prompt = {'Number of tags','Number of anchors'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'1'};
+defaultans = {'1','4'};
 numoftags = inputdlg(prompt,dlg_title,num_lines,defaultans);
-prompt = {'Enter the tag ID (one ID per line)'};
+%%
+prompt = {'Enter the tag ID (one ID per line)','Enter the Anchor ID (one ID per line)',};
 dlg_title = 'Input';
-num_lines = str2double(numoftags);
-defaultans = {'tagID'};
+num_lines = 1;%str2double(numoftags(2));
+defaultans = {'tagID','id1','id2'};
 tagID = inputdlg(prompt,dlg_title,num_lines,defaultans);
+%% Settup objects as fields within handles
 handles.tagID = tagID;
+handles.room = map('comsyshall2test3.png'); % ojbect for the map
+imshow(handles.room.get_pic)
+handles.filter = 'butter';
+% Init aurduino
+if ~exist('a','var') || ~isvalid(a)
+     %Open the serial port connection
+    handles.a = Arduino('COM3','%d %d %d %d %d %d %d');
+end
 
-% Update handles structure
+for i = 1 : length(handles.tagID{1}(:,1))
+    % This for loops ads the tags to the map
+    % circle is the class for making tags
+    handles.room.tag_list = [handles.room.tag_list circle('red',5,handles.tagID{1}(i,:))];
+    
+end
+
+% placement of anchors the first placement is the origin anchor
+set(handles.text2, 'String','Place out the anchors, first anchor will be the the origin anchor');
+[x y] = getpts(handles.axes6);
+handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'green')];
+%for anch = 1:5
+%    [x y] = getpts(handles.axes6)
+%handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
+%end
+%%
+
 guidata(hObject, handles);
+% Update handles structure
+
+
+
+
 
 % UIWAIT makes gui_1 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_1_OutputFcn(hObject, eventdata, handles) 
+function varargout = gui_1_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -108,91 +138,148 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-room = map('comsyshall2test.png'); % map class to keep track of tags and anchors
-imshow(room.get_pic)
-
-% pixelstorleken för bilden är 1771x385
-for i = 1 : length(handles.tagID{1}(:,1))
-    % This for loops ads the tags to the map
-    % circle is the class for making tags
-     room.tag_list = [room.tag_list circle('red',5,handles.tagID{1}(i,:))];
-    
-end
 
 if(get(handles.togglebutton1,'value'))
-%% for testing GUI   
-posx = 0;
-posy = 385/2;
-posz = 0;
-hold on 
-[oldx,oldy] = start_track(posx,posy);
-handles.start = 1;  %Update the GUI data
-else
-    imshow(room.get_pic)
+    % If the togglebotton is pressed down this is statement will be true
+    % handles.start = 1;  %Update the GUI data
+% delete lineplots on axes before starting over.
+    h = findobj('type','line');
+if ~isempty(h)
+delete(h)
+end
 end 
+
 %% Here is where our main function goes.
-testdata = [1:10:10000 ; 192*ones(1,1000)];
-testdata = testdata + 15*randn(2,1000);
-s = load(filename);
-            obj.data = s.data / 1000;
-tmp5=[];
+
+% Define the origin at one of the anchors
+origin = handles.room.Anchor_list(1).pos;%[pixpermm_x*2100 pixpermm_y*6000];
+
+% Skale axes
+map_size = size(handles.room.get_pic);
+pixpermm_x = map_size(2)/23000;
+pixpermm_y = map_size(1)/10000;
+
+% Inital value for position
+data = handles.a.readLatest;
+ oldx = origin(1) + data(1)*pixpermm_x;
+ oldy = origin(2) - data(2)*pixpermm_y;
+oldz = data(3);
+% Below is for 3D plot
+ % set(handles.axes6,'view',[-37.5 30]);
+%grid(handles.axes6,'on');
+%% testdata
+
+% s = load('20161114commsyscorridor1.mat');
+% testdata = s.data;
+% testdata(1,:) = testdata(1,:)*pixpermm_x;
+% testdata(2,:) = testdata(2,:)*pixpermm_y;
+%% init Tracekr
+%tmp5=[];
 temp = 1;
-x0=[0;192;0;2];
-p0=0.1*diag([15 15 2 2]);
-F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-Q=0.005*diag([1 1 10 10]);
-H=[1 0 0 0;0 1 0 0];
-R=2*[1,0;0,1];
-G=[1 0 1/2 0;0 1 0 1/2;0 0 1 0; 0 0 0 1];
-kf=kalmantracker(F,H,Q,R,x0,p0,G);
-trj=trajectory(0.1,'butter');
-% INIT aurduino
-%if ~exist('a','var') || ~isvalid(a)
-%     %Open the serial port connection
-%    a = Arduino('COM3');
-%end
-handles.start = 1;  %Update the GUI data
+
+trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
+
 %% Main loop
 while(get(handles.togglebutton1,'value'))
-%    data = a.read;
-posx = testdata(1,temp);%data(1); %
-posy = testdata(2,temp); %data(2); %
-%posz = data(3);
-%
-kf=kf.measurementupdate(testdata(:,temp));
-   trj=trj.add_data(kf.xk);
-   disp('meas')
-   kf.Pk;
-   tmp=kf.Pk; %Save the current estimate uncertainty
-   tmp1=kf.xk; %Save the current state estimate
-   kf=kf.timeupdate();
-   disp('time');
-   tmp3=trj.traj;
-   tmp4=kf.trajectory;
-temp = temp + 1;
+    tic
+    
+    data = handles.a.readLatest;
+     trk1=trk1.add_data(data(1:2)*0.001);
+    temp = temp + 1;
+    traje1=trk1.getTraj()*1000;
+    
+    posmm = data; % trk1.getPos;
+    posx = origin(1) + posmm(1)*pixpermm_x;%testdata(1,temp);% %
+    posy = origin(2) - posmm(2)*pixpermm_y;%testdata(2,temp); % %
+   % posz = origin(3) + testdata(3,temp);%data(3);
+    %
+    
 
-if length(tmp4)>20
-tmp5=smooth_trajectory(5,0.1,tmp4);
+    handles.room.set_tag_pos(posx,posy,1); % gives the tag its position on the map
+    
+    if size(traje1,2)>2
+        plot(origin(1) + traje1(1,:)*pixpermm_x, origin(2) - traje1(2,:)*pixpermm_y,'r-','parent',handles.axes6)
+        %traje1
+    end
+   
+    drawnow limitrate
+    oldx = posx;
+    oldy = posy;
+    
+   text = sprintf('sample time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',toc,posx,data(1),posy,data(2));
+    set(handles.text2, 'String',text);
+    %Give the button callback a chance to interrupt the opening fucntion
+    handles = guidata(hObject);
+    
 end
-   % [posx, posy] = start_track(oldx,oldy); % change to get data from processing module
-room.set_tag_pos(posx,(385 - posy),1); % gives the tag its position on the map 
-% todo: skale the map with the recievd data
-drawnow
-plot([oldx posx], [(385 - oldy) (385 - posy)],'b','parent',handles.axes6)
-if length(tmp5)>0
-   plot(tmp5(1,:),tmp5(2,:),'r-','parent',handles.axes6) 
-end
-oldx = posx;
-oldy = posy;
- %Give the button callback a chance to interrupt the opening fucntion
-handles = guidata(hObject);
-
-
-end
-
-
-
-
-
+%handles = guidata(hObject);
 % Hint: get(hObject,'Value') returns toggle state of togglebutton1
 
+
+% --- Executes on selection change in popupmenu1.
+function popupmenu1_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+switch get(handles.popupmenu1,'Value')
+    case 1
+        handles.filter = 'butter';
+    case 2
+        handles.filter = 'cheby1';
+    case 3
+        handles.filter = 'cheby2';
+    otherwise
+end
+
+
+guidata(hObject, handles);
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu1
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on mouse press over axes background.
+function axes6_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to axes6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object deletion, before destroying properties.
+function figure1_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.togglebutton1, 'Value', 0)
+delete(handles.a)
+guidata(hObject,handles);
