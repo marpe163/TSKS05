@@ -17,10 +17,13 @@ classdef map < handle
         
         function obj = map(picture)
         
-        obj.picture = picture;
+        obj.picture = imrotate(imread(picture),180);
         end
         function set_tag_pos(obj,x,y,index)
         obj.tag_list(index).set_pos(x,y);
+        end
+        function set_tag_pos3D(obj,x,y,z,index)
+        obj.tag_list(index).set_pos3D(x,y,z);
         end
         function out = get_pic(obj)
         out = obj.picture;

@@ -21,6 +21,10 @@ classdef circle < handle
                 obj.on_img.Position = [(x - obj.radius), (y - obj.radius), 2*obj.radius, 2*obj.radius];
       
         end
+        function set_pos3D(obj,x , y,z)   
+                obj.on_img.Position = [(x - obj.radius), (y - obj.radius),(z - obj.radius), 2*obj.radius, 2*obj.radius];
+      
+        end
         function pic = get_pic(obj)
         pic = obj.on_img;       
         end
