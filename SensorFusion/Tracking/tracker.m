@@ -22,11 +22,12 @@ classdef tracker
         trj=[];
         filterTraj=[];
         type='';
-        
+        smoothingType = '';
     end
     
     methods
-        function obj = tracker(opt,x0,p0,sample_freq,cutoff,filtertype)
+        function obj = tracker(opt,x0,p0,sample_freq,cutoffFreq_movAvgOrder,smoothingType_)
+            obj.smoothingType = smoothingType_;
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
@@ -49,11 +50,18 @@ classdef tracker
             end
             
             
-            
-            obj.trj=trajectory(cutoff,filtertype);
+            obj.trj=trajectory(smoothingType_,cutoffFreq_movAvgOrder);
             obj.type=opt;
             
         end
+        
+        % Function to change the smoothing type, needs to change in
+        % trajectory class as well
+        function obj = change_smoothing(obj,new_smoothing_type,cutoffFreq_movAvgOrder)
+            obj.smoothingType = new_smoothing_type;
+            obj.trj = obj.trj.change_smoothfilter(new_smoothing_type,cutoffFreq_movAvgOrder);
+        end
+        
         function obj=add_data(obj,inp_data)
              obj.kf=obj.kf.measurementupdate(inp_data);
              obj.trj=obj.trj.add_data(obj.kf.xk);
