@@ -2,6 +2,8 @@
 #include <Pozyx_definitions.h>
 #include <Wire.h>
 
+#include <inttypes.h>
+
 #define NUM_ANCHORS 4
 uint8_t num_anchors = NUM_ANCHORS;
 uint16_t anchors[NUM_ANCHORS] = {0x6078, 0x603F, 0x6050, 0x6000};
@@ -21,23 +23,24 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  static uint32_t count = 1;
-  Serial.print(count);
+  // uint32_t timestamp[NUM_ANCHORS];
+  uint32_t distance[NUM_ANCHORS];
+  int16_t RSS[NUM_ANCHORS];
   for (int i = 0; i < num_anchors; i++) {
     device_range_t range;
     Pozyx.doRanging(anchors[i], &range); // THIS IS FOR MORE THAN 4 ANCHORS
     Pozyx.getDeviceRangeInfo(anchors[i], &range);
-    sprintf(buf, " 0x%x: %umm, %idB", anchors[i], range.distance, range.RSS);
-//    Serial.print("\t0x");
-//    Serial.print(anchors[i], HEX);
-//    Serial.print(":");
-//    Serial.print(range.distance);
-//    Serial.print("mm\t");
-//    Serial.print(range.RSS);
-//    Serial.print("dB; ");
-    Serial.print(buf);
+    // timestamp[i] = range.timestamp;
+    distance[i] = range.distance;
+    RSS[i] = range.RSS;
   }
-  Serial.println();
-  count++;
+  sprintf(
+    buf,
+    "%" PRIu32 " %" PRIu32 " %" PRIu32 " %" PRIu32
+    " %" PRIi16 " %" PRIi16 " %" PRIi16 " %" PRIi16,
+    distance[0], distance[1], distance[2], distance[3],
+    RSS[0], RSS[1], RSS[2], RSS[3]
+  );
+  Serial.println(buf);
 }
+
