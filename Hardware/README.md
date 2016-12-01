@@ -15,6 +15,7 @@ This directory contains the following:
 - `GenerateTestData`: Report coordinates from Pozyx to Matlab.
 - `Arduino`: Object-oriented interface in Matlab to communicate with Arduino over serial port, with example usage script.
 - `TOAPositioning`: Do positioning with TOA, compare with Pozyx built-in positioning.
+- `TOAPositioningRSS`: TOA positioning with received signal strength.
 
 The following applications use the same Arduino code from `GenerateTestData`:
 
