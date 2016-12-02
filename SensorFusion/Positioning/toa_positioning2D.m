@@ -10,7 +10,7 @@ for it=1:length(grid)
     for jt=1:length(grid)
         %Utilize matlab's build in NLS solver.
         [x,d] = lsqnonlin(@(x) costfcn(x,[sensor_positions(1,1:2);sensor_positions(2,1:2);sensor_positions(3,1:2)]...
-            ,[sqrt(ranges(1)^2-sensor_positions(1,3)^2);sqrt(ranges(2)^2-sensor_positions(2,3)^2);sqrt(ranges(3)^2-sensor_positions(3,3)^2)]),[grid(it);grid(jt)],[-30;-30],[30;30],opts);      
+            ,[sqrt(ranges(1)^2-sensor_positions(1,3)^2);sqrt(ranges(2)^2-sensor_positions(2,3)^2);sqrt(ranges(3)^2-sensor_positions(3,3)^2)]),[grid(it);grid(jt)],[-10;0],[30;7.5],opts);      
         if d<dmin
             dmin=d;
             xopt=x;
