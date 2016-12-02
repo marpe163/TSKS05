@@ -6,7 +6,6 @@ classdef trajectory
     properties
         y=[];               %measurement data
         traj=[];            %Trajectories
-        counter=0;          %
         cutoff=0;           % Cut off frequency if butter/cheb is used
         movAvgOrder = 10;    % Order of the moving avarage, if used
         saved_pos = [];     % vector of saved, earlier positions 2xX
@@ -41,6 +40,8 @@ classdef trajectory
                 obj.movAvgOrder=cutoffFreq_movAvgOrder;
             else
                 obj.cutoff=cutoffFreq_movAvgOrder;
+                obj.y = [];
+                obj.traj = [];
             end
         end
         
@@ -73,12 +74,11 @@ classdef trajectory
                 end
                 
             else
+                
                 obj.y=[obj.y inp_data];
             
                 if length(obj.y)-25>length(obj.traj)
-                
-                obj.traj=obj.rt_smooth(obj.y,obj.traj);
-            
+                    obj.traj=obj.rt_smooth(obj.y,obj.traj);
                 end
             end
             
@@ -96,7 +96,6 @@ classdef trajectory
                 tmpvec=[old_traj(1:2,(lenot-15):lenot) data(1:2, lenot+1:end)];
                 tmpvec=obj.smooth_trajectory(5,obj.cutoff,tmpvec,obj.filtertype);
                 smoothed_traj=[old_traj tmpvec(1:2,lenot+1:end-5)];
-
             end
 
         end
