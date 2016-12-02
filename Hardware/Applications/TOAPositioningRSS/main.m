@@ -30,6 +30,12 @@ t1=tracker('ekfctcc',1,1,1,0.05,'butter');
 t2=tracker('ekfctcc',1,1,1,10,'movingAvg');
 count = 0;
 while true
+    count = count+1;
+    if count > 10
+        a.delete;
+        a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d');
+        count = 0;
+    end
     % Get a data point
     data = a.readLatest;
     distance = data(1:6) / 1000;
@@ -74,6 +80,8 @@ while true
     info_xpos = sprintf('  TOA: %6.3f %6.3f\n', xpos(1,end), xpos(2,end));
     info_pos  = sprintf('Pozyx: %6.3f %6.3f\n', pos(1,end), pos(2,end));
     fprintf('\n\n%s%s%s%s', info_mode, info_data, info_xpos, info_pos);
+    fprintf('Delta time: %f Seconds\n', toc);
+    tic
     for i=1:length(sensor_index_sorted)
         fprintf('%s ', sensname(sensor_index_sorted(i),:));
     end
