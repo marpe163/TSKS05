@@ -41,7 +41,7 @@ for it=1:length(grid)
         for kt=1:length(grid)
             %Utilize matlab's build in NLS solver.
             [x,d] = lsqnonlin(@(x) costfcn(x,sensor_positions(:,:)...
-                ,ranges(:)),[grid(it);grid(jt);grid(kt)],[-20;-20;-20],[20;20;20],opts);      
+                ,ranges(:)),[grid(it);grid(jt);grid(kt)],[-30;-30;-30],[30;30;30],opts);      
             if d<dmin
                 dmin=d;
                 xopt=x;
