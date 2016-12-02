@@ -1,4 +1,5 @@
 addpath('../../../SensorFusion/Positioning');
+addpath('../../../SensorFusion/Tracking');
 addpath('../Arduino');
 
 % Order of sensors: 0x6078, 0x603F, 0x6050, 0x6000, 0x600E, 0x603B
@@ -25,6 +26,7 @@ end
 
 pos = [];
 xpos = [];
+t=tracker('ekfctcc',1,1,1,0.05,'butter');
 
 while true
     % Get a data point
@@ -75,13 +77,22 @@ while true
         fprintf('%s ', sensname(sensor_index_sorted(i),:));
     end
 
+    % Do filtering
+    t=t.add_data([xpos(1,end);xpos(2,end)]);
+    position   = t.getPos();
+    trajectory = t.getTraj();
+
     % Plot data
     clf
     plot(xpos(1,:),xpos(2,:),'x');
     hold on
     plot(pos(1,:),pos(2,:),'o');
-    legend('TOA', 'Pozyx');
-    xlim([-5 30]);
-    ylim([-5 10]);
+    plot(position(1),position(2),'*');
+    if(~isempty(trajectory))
+        plot(trajectory(1,:),trajectory(2,:),'r');
+    end
+    legend('TOA', 'Pozyx', 'Filtered position', 'Trajectory');
+    xlim([-5 25]);
+    ylim([0 10]);
     drawnow;
 end
