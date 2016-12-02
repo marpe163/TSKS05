@@ -46,6 +46,7 @@ classdef Arduino < handle
         function delete(obj)
             % DELETE Close the serial port.
             fclose(obj.SerialPort);
+            delete(obj.SerialPort);
         end
         function data = read(obj)
             % READ Get a data point and increment CurrentDataPointIndex.
