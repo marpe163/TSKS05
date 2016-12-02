@@ -26,14 +26,15 @@ end
 
 pos = [];
 xpos = [];
-t1=tracker('ekfctcc',1,1,1,0.05,'butter');
-t2=tracker('ekfctcc',1,1,1,10,'movingAvg');
+sampling_freq = 2;
+t1=tracker('ekfctcc',1,1,sampling_freq,0.05,'butter');
+t2=tracker('ekfctcc',1,1,sampling_freq,10,'movingAvg');
 count = 0;
 while true
     count = count+1;
     if count > 10
         a.delete;
-        a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d');
+        a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d');
         count = 0;
     end
     % Get a data point
@@ -42,7 +43,7 @@ while true
     RSS = data(7:12);
     sensor_index = 1:6;
     % Position reported by Pozyx
-    pos = [pos [data(13);data(14);data(15)]/1000];
+    % pos = [pos [data(13);data(14);data(15)]/1000];
 
     % Filter out the outlier values
     tmp = [distance'; RSS'; sensor_index];
@@ -52,6 +53,7 @@ while true
 
     % Break if we have less than four data points
     if(size(tmp,2) < 3)
+        fprintf('Not enough data points\n');
         continue;
     end
 
@@ -78,8 +80,9 @@ while true
     info_data = sprintf('%d %d %d %d %d %d\n',...
         data(1), data(2), data(3), data(4), data(5), data(6));
     info_xpos = sprintf('  TOA: %6.3f %6.3f\n', xpos(1,end), xpos(2,end));
-    info_pos  = sprintf('Pozyx: %6.3f %6.3f\n', pos(1,end), pos(2,end));
-    fprintf('\n\n%s%s%s%s', info_mode, info_data, info_xpos, info_pos);
+    % info_pos  = sprintf('Pozyx: %6.3f %6.3f\n', pos(1,end), pos(2,end));
+    % fprintf('\n\n%s%s%s%s', info_mode, info_data, info_xpos, info_pos);
+    fprintf('\n\n%s%s%s', info_mode, info_data, info_xpos);
     fprintf('Delta time: %f Seconds\n', toc);
     tic
     for i=1:length(sensor_index_sorted)
@@ -97,7 +100,7 @@ while true
     clf
     plot(xpos(1,:),xpos(2,:),'x');
     hold on
-    plot(pos(1,:),pos(2,:),'o');
+    % plot(pos(1,:),pos(2,:),'o');
     plot(position(1),position(2),'*');
     if(~isempty(trajectory_butter))
         plot(trajectory_butter(1,:),trajectory_butter(2,:),'r');
@@ -105,8 +108,8 @@ while true
     if(~isempty(trajectory_ma))
         plot(trajectory_ma(1,:),trajectory_ma(2,:),'g');
     end
-    legend('TOA', 'Pozyx', 'Filtered position',...
-        'Trajectory(Butterworth)','Trajectory(Moving Average)');
+%     legend('TOA','Filtered position',...
+%         'Trajectory(Butterworth)','Trajectory(Moving Average)');
     xlim([-5 25]);
     ylim([0 10]);
     drawnow;
