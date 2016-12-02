@@ -26,8 +26,9 @@ end
 
 pos = [];
 xpos = [];
-t=tracker('ekfctcc',1,1,1,0.05,'butter');
-
+t1=tracker('ekfctcc',1,1,1,0.05,'butter');
+t2=tracker('ekfctcc',1,1,1,10,'movingAvg');
+count = 0;
 while true
     % Get a data point
     data = a.readLatest;
@@ -78,9 +79,11 @@ while true
     end
 
     % Do filtering
-    t=t.add_data([xpos(1,end);xpos(2,end)]);
-    position   = t.getPos();
-    trajectory = t.getTraj();
+    t1=t1.add_data([xpos(1,end);xpos(2,end)]);
+    t2=t2.add_data([xpos(1,end);xpos(2,end)]);
+    position = t1.getPos();
+    trajectory_butter = t1.getTraj();
+    trajectory_ma = t2.getTraj();
 
     % Plot data
     clf
@@ -88,10 +91,14 @@ while true
     hold on
     plot(pos(1,:),pos(2,:),'o');
     plot(position(1),position(2),'*');
-    if(~isempty(trajectory))
-        plot(trajectory(1,:),trajectory(2,:),'r');
+    if(~isempty(trajectory_butter))
+        plot(trajectory_butter(1,:),trajectory_butter(2,:),'r');
     end
-    legend('TOA', 'Pozyx', 'Filtered position', 'Trajectory');
+    if(~isempty(trajectory_ma))
+        plot(trajectory_ma(1,:),trajectory_ma(2,:),'g');
+    end
+    legend('TOA', 'Pozyx', 'Filtered position',...
+        'Trajectory(Butterworth)','Trajectory(Moving Average)');
     xlim([-5 25]);
     ylim([0 10]);
     drawnow;
