@@ -33,7 +33,7 @@ t2=tracker('cvcc',1,1,sampling_freq,10,'movingAvg');
 count = 0;
 while true
     count = count+1;
-    if count > 25
+    if count > 20
         a.delete;
         a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d');
         count = 0;
@@ -92,13 +92,15 @@ while true
         fprintf('%s ', sensname(sensor_index_sorted(i),:));
     end
 
+    c = 1000;
+    exp = 3;
     % Calculate the delta x and delta y between selected anchors
     dx = max(best_anchors_pos(:,1))-min(best_anchors_pos(:,1));
     dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
     fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
     % Change variance according to the anchors with best signal
-    t1 = t1.measurementNoiseUpdate(dx,dy,100,3);
-    t2 = t2.measurementNoiseUpdate(dx,dy,100,3);
+    t1 = t1.measurementNoiseUpdate(dx,dy,c,exp);
+    t2 = t2.measurementNoiseUpdate(dx,dy,c,exp);
     % Do filtering
     t1=t1.add_data([xpos(1,end);xpos(2,end)]);
     t2=t2.add_data([xpos(1,end);xpos(2,end)]);
@@ -122,5 +124,6 @@ while true
 %         'Trajectory(Butterworth)','Trajectory(Moving Average)');
     xlim([-5 25]);
     ylim([0 10]);
+    title(sprintf('c=%d exp=%d', c, exp));
     drawnow;
 end
