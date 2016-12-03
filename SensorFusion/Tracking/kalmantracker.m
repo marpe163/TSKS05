@@ -46,6 +46,9 @@ classdef kalmantracker
             obj.Pk=obj.Pk-K*obj.H*obj.Pk;
   
         end
+        function obj=measurementNoiseUpdate(deltax,deltay,const,expo)
+            obj.R=const*[1/((deltax)^expo) 0;0 1/(deltay^expo)];
+        end
         
     end
     
