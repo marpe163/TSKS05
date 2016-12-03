@@ -1,6 +1,7 @@
 addpath('../../../SensorFusion/Positioning');
 addpath('../../../SensorFusion/Tracking');
 addpath('../Arduino');
+tic
 
 % Order of sensors: 0x6078, 0x603F, 0x6050, 0x6000, 0x600E, 0x603B
 sensname=[
@@ -27,12 +28,12 @@ end
 pos = [];
 xpos = [];
 sampling_freq = 2;
-t1=tracker('ekfctcc',1,1,sampling_freq,0.05,'butter');
-t2=tracker('ekfctcc',1,1,sampling_freq,10,'movingAvg');
+t1=tracker('cvcc',1,1,sampling_freq,0.4,'butter');
+t2=tracker('cvcc',1,1,sampling_freq,10,'movingAvg');
 count = 0;
 while true
     count = count+1;
-    if count > 10
+    if count > 25
         a.delete;
         a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d');
         count = 0;
@@ -68,11 +69,13 @@ while true
     % Take the four measurements with the best RSS
     if length(distance_sorted) > 3
         d = distance_sorted(1:4);
-        xpos=[xpos toa_positioning(senspos(sensor_index_sorted(1:4),:),d',[-5  10])];
+        best_anchors_pos = senspos(sensor_index_sorted(1:4),:);
+        xpos=[xpos toa_positioning(best_anchors_pos,d',[-5  10])];
         info_mode = sprintf('More than three anchors\n');
     elseif length(distance_sorted) == 3
         d = distance_sorted(1:3);
-        xpos=[xpos [toa_positioning2D(senspos(sensor_index_sorted(1:3),:),d',[-5  10]); 0]];
+        best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
+        xpos=[xpos [toa_positioning2D(best_anchors_pos,d',[-5  10]); 0]];
         info_mode = sprintf('Three anchors\n');
     end
 
@@ -89,6 +92,13 @@ while true
         fprintf('%s ', sensname(sensor_index_sorted(i),:));
     end
 
+    % Calculate the delta x and delta y between selected anchors
+    dx = max(best_anchors_pos(:,1))-min(best_anchors_pos(:,1));
+    dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
+    fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
+    % Change variance according to the anchors with best signal
+    t1 = t1.measurementNoiseUpdate(dx,dy,100,3);
+    t2 = t2.measurementNoiseUpdate(dx,dy,100,3);
     % Do filtering
     t1=t1.add_data([xpos(1,end);xpos(2,end)]);
     t2=t2.add_data([xpos(1,end);xpos(2,end)]);
