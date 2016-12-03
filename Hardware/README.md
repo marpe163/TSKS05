@@ -40,7 +40,7 @@ where `/dev/ttyACM0` is the name of the Arduino device and `/dev/ttyS99` is an a
 
 ### File lock on the serial port
 
-If `fclose` is not called on the serial port, and you lose the handle to it, simply restart Matlab to get access to the port again. Most of the Matlab code make sure to do this when the handle exists, but beware when you clear the workspace!
+If `fclose` is not called on the serial port, and you lose the handle to it, you can use the command `delete(instrfind)` to close the serial port.
 
 ### UI problems with multiple windows
 
