@@ -84,7 +84,7 @@ classdef tracker
                cov=cov(1:2,1:2);
             
         end
-        function obj=measurementNoiseUpdate(dx,dy,const,expo)
+        function obj=measurementNoiseUpdate(obj,dx,dy,const,expo)
             
            obj.kf=obj.kf.measurementNoiseUpdate(dx,dy,const,expo) ;
         end
