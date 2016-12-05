@@ -1,4 +1,4 @@
-classdef tracker
+classdef tracker < handle
   %Class enabling higher level abstraction of tracking. A tracker object is
   %fed data by the add_data method, and in turn it calculates the current
   %position (Based on the chosen filter) and an estimated trajectory 
@@ -31,8 +31,8 @@ classdef tracker
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
-                x0=[3;3;0;0];
-                p0=0.1*diag([15 15 2 2]);
+                x0=x0;
+                p0=p0;
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
                 Q=1*diag([1 1 10 10]);
                 H=[1 0 0 0;0 1 0 0];
