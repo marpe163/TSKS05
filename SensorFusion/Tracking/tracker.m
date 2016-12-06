@@ -62,10 +62,8 @@ classdef tracker
             obj.trj = obj.trj.change_smoothfilter(new_smoothing_type,cutoffFreq_movAvgOrder);
         end
         
-        function obj=add_data(obj,inp_data,opts)
-            if ~strcmp(opts,'bad')
+        function obj=add_data(obj,inp_data)
              obj.kf=obj.kf.measurementupdate(inp_data);
-            end
              obj.trj=obj.trj.add_data(obj.kf.xk);
              obj.filterTraj=[obj.filterTraj obj.kf.xk];
              obj.kf=obj.kf.timeupdate();
