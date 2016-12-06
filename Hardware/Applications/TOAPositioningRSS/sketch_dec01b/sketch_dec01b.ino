@@ -9,6 +9,8 @@ uint8_t num_anchors = NUM_ANCHORS;
 uint16_t anchors[NUM_ANCHORS]  = {0x6078, 0x603F, 0x6050, 0x6000, 0x600E, 0x603B};
 
 char buf[128];
+unsigned int count = 0;
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -23,6 +25,17 @@ void setup() {
 }
 
 void loop() {
+  count++;
+  if (count > 20) {
+    count = 0;
+    Pozyx.begin();
+    if (Pozyx.begin() == POZYX_FAILURE) {
+      Serial.println(F("ERROR: Unable to connect to POZYX shield"));
+      Serial.println(F("Reset required"));
+      delay(100);
+      abort();
+    }
+  }
   // uint32_t timestamp[NUM_ANCHORS];
   uint32_t distance[NUM_ANCHORS];
   int16_t RSS[NUM_ANCHORS];

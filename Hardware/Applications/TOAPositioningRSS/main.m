@@ -22,7 +22,7 @@ senspos=[
 
 if ~exist('a','var') || ~isvalid(a)
     % Open the serial port connection
-    a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d');
+    a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 
 pos = [];
@@ -30,14 +30,7 @@ xpos = [];
 sampling_freq = 2;
 t1=tracker('cvcc',1,1,sampling_freq,0.4,'butter');
 t2=tracker('cvcc',1,1,sampling_freq,10,'movingAvg');
-count = 0;
 while true
-    count = count+1;
-    if count > 20
-        a.delete;
-        a = Arduino('/dev/ttyS99','%d %d %d %d %d %d %d %d %d %d %d %d');
-        count = 0;
-    end
     % Get a data point
     data = a.readLatest;
     distance = data(1:6) / 1000;
@@ -67,28 +60,32 @@ while true
     sensor_index_sorted = sensor_index(index);
 
     % Take the four measurements with the best RSS
-    if length(distance_sorted) > 3
-        d = distance_sorted(1:4);
-        best_anchors_pos = senspos(sensor_index_sorted(1:4),:);
-        xpos=[xpos toa_positioning(best_anchors_pos,d',[-5  10])];
-        info_mode = sprintf('More than three anchors\n');
-    elseif length(distance_sorted) == 3
+%     if length(distance_sorted) > 3
+%         d = distance_sorted(1:4);
+%         best_anchors_pos = senspos(sensor_index_sorted(1:4),:);
+%         xpos=[xpos toa_positioning(best_anchors_pos,d',[-5  10])];
+%         info_mode = sprintf('More than three anchors\n');
+%     elseif length(distance_sorted) == 3
         d = distance_sorted(1:3);
         best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
         xpos=[xpos [toa_positioning2D(best_anchors_pos,d',[-5  10]); 0]];
         info_mode = sprintf('Three anchors\n');
-    end
+%     end
 
     % Report some information in command window
-    info_data = sprintf('%d %d %d %d %d %d\n',...
-        data(1), data(2), data(3), data(4), data(5), data(6));
+    info_data = sprintf(...
+        '%9s%9s%9s%9s%9s%9s\n%9d%9d%9d%9d%9d%9d\n%9d%9d%9d%9d%9d%9d\n',...
+        sensname(1,:),sensname(2,:),sensname(3,:),...
+        sensname(4,:),sensname(5,:),sensname(6,:),...
+        data(1), data(2), data(3), data(4), data(5), data(6),...
+        data(7), data(8), data(9), data(10), data(11), data(12));
     info_xpos = sprintf('  TOA: %6.3f %6.3f\n', xpos(1,end), xpos(2,end));
     % info_pos  = sprintf('Pozyx: %6.3f %6.3f\n', pos(1,end), pos(2,end));
     % fprintf('\n\n%s%s%s%s', info_mode, info_data, info_xpos, info_pos);
     fprintf('\n\n%s%s%s', info_mode, info_data, info_xpos);
     fprintf('Delta time: %f Seconds\n', toc);
     tic
-    for i=1:length(sensor_index_sorted)
+    for i=1:length(distance_sorted)
         fprintf('%s ', sensname(sensor_index_sorted(i),:));
     end
 
@@ -124,6 +121,9 @@ while true
 %         'Trajectory(Butterworth)','Trajectory(Moving Average)');
     xlim([-5 25]);
     ylim([0 10]);
+    % Plot the anchors
+    plot(senspos(:,1), senspos(:,2), 'ro')
+    text(senspos(:,1), senspos(:,2), cellstr(sensname));
     title(sprintf('c=%d exp=%d', c, exp));
     drawnow;
 end
