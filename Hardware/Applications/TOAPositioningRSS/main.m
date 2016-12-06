@@ -30,6 +30,9 @@ xpos = [];
 sampling_freq = 2;
 t1=tracker('cvcc',1,1,sampling_freq,0.4,'butter');
 t2=tracker('cvcc',1,1,sampling_freq,10,'movingAvg');
+
+old = [0 0 0 0 0 0; 1 1 1 1 1 1; 1:6];
+
 while true
     % Get a data point
     data = a.readLatest;
@@ -41,13 +44,17 @@ while true
 
     % Filter out the outlier values
     tmp = [distance'; RSS'; sensor_index];
+    % First remove stale values
+    tmp = tmp(:,old(1,:) ~= tmp(1,:));
     tmp = tmp(:,tmp(1,:)<50);
     tmp = tmp(:,tmp(2,:)<0);
     tmp = tmp(:,tmp(2,:)>-200);
 
+    % Save the values for comparison next iteration
+    old = [distance'; RSS'; sensor_index];
+
     % Break if we have less than four data points
     if(size(tmp,2) < 3)
-        fprintf('Not enough data points\n');
         continue;
     end
 
