@@ -39,8 +39,6 @@ while true
     distance = data(1:6) / 1000;
     RSS = data(7:12);
     sensor_index = 1:6;
-    % Position reported by Pozyx
-    % pos = [pos [data(13);data(14);data(15)]/1000];
 
     % Filter out the outlier values
     tmp = [distance'; RSS'; sensor_index];
@@ -53,7 +51,7 @@ while true
     % Save the values for comparison next iteration
     old = [distance'; RSS'; sensor_index];
 
-    % Break if we have less than four data points
+    % Break if we have less than three data points
     if(size(tmp,2) < 3)
         continue;
     end
@@ -66,18 +64,11 @@ while true
     distance_sorted = distance(index);
     sensor_index_sorted = sensor_index(index);
 
-    % Take the four measurements with the best RSS
-%     if length(distance_sorted) > 3
-%         d = distance_sorted(1:4);
-%         best_anchors_pos = senspos(sensor_index_sorted(1:4),:);
-%         xpos=[xpos toa_positioning(best_anchors_pos,d',[-5  10])];
-%         info_mode = sprintf('More than three anchors\n');
-%     elseif length(distance_sorted) == 3
-        d = distance_sorted(1:3);
-        best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
-        xpos=[xpos [toa_positioning2D(best_anchors_pos,d',[-5  10]); 0]];
-        info_mode = sprintf('Three anchors\n');
-%     end
+    % Take the three measurements with the best RSS
+    d = distance_sorted(1:3);
+    best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
+    xpos=[xpos [toa_positioning2D(best_anchors_pos,d',[-5  10]); 0]];
+    info_mode = sprintf('Three anchors\n');
 
     % Report some information in command window
     info_data = sprintf(...
@@ -87,8 +78,6 @@ while true
         data(1), data(2), data(3), data(4), data(5), data(6),...
         data(7), data(8), data(9), data(10), data(11), data(12));
     info_xpos = sprintf('  TOA: %6.3f %6.3f\n', xpos(1,end), xpos(2,end));
-    % info_pos  = sprintf('Pozyx: %6.3f %6.3f\n', pos(1,end), pos(2,end));
-    % fprintf('\n\n%s%s%s%s', info_mode, info_data, info_xpos, info_pos);
     fprintf('\n\n%s%s%s', info_mode, info_data, info_xpos);
     fprintf('Delta time: %f Seconds\n', toc);
     tic
@@ -116,7 +105,6 @@ while true
     clf
     plot(xpos(1,:),xpos(2,:),'x');
     hold on
-    % plot(pos(1,:),pos(2,:),'o');
     plot(position(1),position(2),'*');
     if(~isempty(trajectory_butter))
         plot(trajectory_butter(1,:),trajectory_butter(2,:),'r');
@@ -124,8 +112,6 @@ while true
     if(~isempty(trajectory_ma))
         plot(trajectory_ma(1,:),trajectory_ma(2,:),'g');
     end
-%     legend('TOA','Filtered position',...
-%         'Trajectory(Butterworth)','Trajectory(Moving Average)');
     xlim([-5 25]);
     ylim([0 10]);
     % Plot the anchors
