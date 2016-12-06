@@ -73,7 +73,9 @@ classdef ekftracker
            A=[0 0 1 0 0;0 0 0 1 0;0 0 0 -w -vy;0 0 w 0 vx;0 0 0 0 0];
            F=expm(A*obj.T);
         end
-        
+        function obj=measurementNoiseUpdate(obj,deltax,deltay,const,expo)
+            obj.R=const*[1/((deltax)^expo) 0;0 1/(deltay^expo)];
+        end
         
     end
     

@@ -1,37 +1,37 @@
 
 
-function varargout = gui_1(varargin)
-% GUI_1 MATLAB code for gui_1.fig
-%      GUI_1, by itself, creates a new GUI_1 or raises the existing
+function varargout = gui_1_TOA(varargin)
+% GUI_1_TOA MATLAB code for gui_1_TOA.fig
+%      GUI_1_TOA, by itself, creates a new GUI_1_TOA or raises the existing
 %      singleton*.
 %
-%      H = GUI_1 returns the handle to a new GUI_1 or the handle to
+%      H = GUI_1_TOA returns the handle to a new GUI_1_TOA or the handle to
 %      the existing singleton*.
 %
-%      GUI_1('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GUI_1.M with the given input arguments.
+%      GUI_1_TOA('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in GUI_1_TOA.M with the given input arguments.
 %
-%      GUI_1('Property','Value',...) creates a new GUI_1 or raises the
+%      GUI_1_TOA('Property','Value',...) creates a new GUI_1_TOA or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before gui_1_OpeningFcn gets called.  An
+%      applied to the GUI before gui_1_TOA_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to gui_1_OpeningFcn via varargin.
+%      stop.  All inputs are passed to gui_1_TOA_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help gui_1
+% Edit the above text to modify the response to help gui_1_TOA
 
-% Last Modified by GUIDE v2.5 01-Dec-2016 14:50:35
+% Last Modified by GUIDE v2.5 02-Dec-2016 17:06:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @gui_1_OpeningFcn, ...
-    'gui_OutputFcn',  @gui_1_OutputFcn, ...
+    'gui_OpeningFcn', @gui_1_TOA_OpeningFcn, ...
+    'gui_OutputFcn',  @gui_1_TOA_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -47,27 +47,28 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before gui_1 is made visible.
-function gui_1_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_1_TOA is made visible.
+function gui_1_TOA_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to gui_1 (see VARARGIN)
+% varargin   command line arguments to gui_1_TOA (see VARARGIN)
 
-% Choose default command line output for gui_1
+% Choose default command line output for gui_1_TOA
 %init
 
 handles.output = hObject;
 
-
+delete(instrfind)
 
 %% Startup input dialog
 prompt = {'Number of tags','Number of anchors'};
 dlg_title = 'Input';
 num_lines = 1;
 defaultans = {'1','4'};
-numoftags = inputdlg(prompt,dlg_title,num_lines,defaultans);
+numofstuf = inputdlg(prompt,dlg_title,num_lines,defaultans);
+numofanch = str2double(numofstuf(2));
 %%
 prompt = {'Enter the tag ID (one ID per line)','Enter the Anchor ID (one ID per line)',};
 dlg_title = 'Input';
@@ -81,11 +82,12 @@ imshow(handles.room.get_pic)
 handles.filter = 'butter';
 % Init aurduino
 if ~exist('a','var') || ~isvalid(a)
-     %Open the serial port connection
-    handles.a = Arduino('COM3','%d %d %d %d %d %d %d');
+    %Open the serial port connection
+    handles.a = Arduino('COM3','%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 %init tracker
 handles.trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
+%
 for i = 1 : length(handles.tagID{1}(:,1))
     % This for loops ads the tags to the map
     % circle is the class for making tags
@@ -94,13 +96,14 @@ for i = 1 : length(handles.tagID{1}(:,1))
 end
 
 % placement of anchors the first placement is the origin anchor
-set(handles.text2, 'String','Place out the anchors, first anchor will be the the origin anchor');
+set(handles.text2, 'String','Place out the origin anchor');
 [x y] = getpts(handles.axes6);
 handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'green')];
-%for anch = 1:5
-%    [x y] = getpts(handles.axes6)
-%handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
-%end
+set(handles.text2, 'String','Place out the res of the anchors');
+for anch = 1:(numofanch - 1)
+    [x y] = getpts(handles.axes6);
+    handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
+end
 %%
 
 guidata(hObject, handles);
@@ -110,12 +113,12 @@ guidata(hObject, handles);
 
 
 
-% UIWAIT makes gui_1 wait for user response (see UIRESUME)
+% UIWAIT makes gui_1_TOA wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_1_OutputFcn(hObject, eventdata, handles)
+function varargout = gui_1_TOA_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -144,13 +147,12 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 
 if(get(handles.togglebutton1,'value'))
     % If the togglebotton is pressed down this is statement will be true
-    % handles.start = 1;  %Update the GUI data
-% delete lineplots on axes before starting over.
+    % delete lineplots on axes before starting over.
     h = findobj('type','line');
-if ~isempty(h)
-delete(h)
+    if ~isempty(h)
+        delete(h)
+    end
 end
-end 
 
 %% Here is where our main function goes.
 
@@ -159,16 +161,16 @@ origin = handles.room.Anchor_list(1).pos;%[pixpermm_x*2100 pixpermm_y*6000];
 
 % Skale axes
 map_size = size(handles.room.get_pic);
-pixpermm_x = map_size(2)/23000;
+pixpermm_x = map_size(2)/30000;
 pixpermm_y = map_size(1)/10000;
 
 % Inital value for position
 data = handles.a.readLatest;
- oldx = origin(1) + data(1)*pixpermm_x;
- oldy = origin(2) - data(2)*pixpermm_y;
+oldx = origin(1) + data(1)*pixpermm_x;
+oldy = origin(2) - data(2)*pixpermm_y;
 oldz = data(3);
 % Below is for 3D plot
- % set(handles.axes6,'view',[-37.5 30]);
+% set(handles.axes6,'view',[-37.5 30]);
 %grid(handles.axes6,'on');
 %% testdata
 
@@ -179,39 +181,101 @@ oldz = data(3);
 %% init Tracekr
 %tmp5=[];
 temp = 1;
+%% for TOA
+pos = [];
+xpos = [];
+senspos=[
+    14.75 0.30 1.60;
+    4.95 0.00 1.60;
+    -2.10 2.30 1.95;
+    25.25 2.25 1.05;
+    9.75 1.90 2.40;
+    -2.25 7.00 1.00];
 
-%trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
-
+count = 0;
+clock = 0;
 %% Main loop
 while(get(handles.togglebutton1,'value'))
-    tic
     
+   
+    count = count+1;
+    if count > 20
+        
+        delete(handles.a);
+        handles.a = Arduino('COM3','%d %d %d %d %d %d %d %d %d %d %d %d');
+        count = 0;
+        
+        guidata(hObject, handles);
+        
+        
+    end
+    tic 
     data = handles.a.readLatest;
-     handles.trk1.add_data(data(1:2)*0.001);
+    %TOA
+    distance = data(1:6) / 1000;
+    RSS = data(7:12);
+    sensor_index = 1:6;
+    % Filter out the outlier values
+    tmp = [distance'; RSS'; sensor_index];
+    tmp = tmp(:,tmp(1,:)<50);
+    tmp = tmp(:,tmp(2,:)<0);
+    tmp = tmp(:,tmp(2,:)>-200);
+    
+    % Break if we have less than four data points
+    if(size(tmp,2) < 3)
+        continue;
+    end
+    % Sort the data by RSS
+    distance = tmp(1,:);
+    RSS = tmp(2,:);
+    sensor_index = tmp(3,:);
+    [RSS_sorted, index] = sort(RSS,'descend');
+    distance_sorted = distance(index);
+    sensor_index_sorted = sensor_index(index);
+    
+    % Take the four measurements with the best RSS
+    if length(distance_sorted) > 3
+        d = distance_sorted(1:4);
+        xpos=[xpos toa_positioning(senspos(sensor_index_sorted(1:4),:),d',[-5  10])];
+        info_mode = sprintf('More than three anchors\n');
+    elseif length(distance_sorted) == 3
+        d = distance_sorted(1:3);
+        xpos=[xpos [toa_positioning2D(senspos(sensor_index_sorted(1:3),:),d',[-5  10]); 0]];
+        info_mode = sprintf('Three anchors\n');
+    end
+    posx = origin(1) + xpos(1,end)*pixpermm_x*1000;%testdata(1,temp);
+    posy = origin(2) - xpos(2,end)*pixpermm_y*1000;%testdata(2,temp);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    handles.trk1.add_data([xpos(1,end);xpos(2,end)]);
     temp = temp + 1;
     traje1=handles.trk1.getTraj()*1000;
     
     posmm = data; % trk1.getPos;
-    posx = origin(1) + posmm(1)*pixpermm_x;%testdata(1,temp);% %
-    posy = origin(2) - posmm(2)*pixpermm_y;%testdata(2,temp); % %
-   % posz = origin(3) + testdata(3,temp);%data(3);
+    % posx = origin(1) + posmm(1)*pixpermm_x;%testdata(1,temp);% %
+    % posy = origin(2) - posmm(2)*pixpermm_y;%testdata(2,temp); % %
+    % posz = origin(3) + testdata(3,temp);%data(3);
     %
     
-
+    
     handles.room.set_tag_pos(posx,posy,1); % gives the tag its position on the map
     
     if size(traje1,2)>2
+        %   lineshandle = findobj('type','line');
+        %      if ~isempty(lineshandle)
+        %         delete(lineshandle)
+        %    end
         plot(origin(1) + traje1(1,:)*pixpermm_x, origin(2) - traje1(2,:)*pixpermm_y,'r-','parent',handles.axes6)
         %traje1
     end
-   
+    
     drawnow limitrate
     oldx = posx;
     oldy = posy;
-    
-   text = sprintf('Update time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',toc,posx,data(1),posy,data(2));
+    clock = toc;
+    text = sprintf('sample time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',clock,posx,distance(1),posy,distance(2));
     set(handles.text2, 'String',text);
     %Give the button callback a chance to interrupt the opening fucntion
+    
     handles = guidata(hObject);
     
 end
@@ -238,7 +302,6 @@ switch get(handles.popupmenu1,'Value')
         handles.filter = 'movingAvg';
         handles.trk1.change_smoothing(handles.filter,10)
     otherwise
-
 end
 
 
@@ -292,4 +355,5 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.togglebutton1, 'Value', 0)
 delete(handles.a)
+
 guidata(hObject,handles);
