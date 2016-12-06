@@ -84,7 +84,8 @@ if ~exist('a','var') || ~isvalid(a)
      %Open the serial port connection
     handles.a = Arduino('COM3','%d %d %d %d %d %d %d');
 end
-
+%init tracker
+handles.trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
 for i = 1 : length(handles.tagID{1}(:,1))
     % This for loops ads the tags to the map
     % circle is the class for making tags
@@ -129,6 +130,8 @@ axes(handles.axes4)
 title('Sensor 3')
 axes(handles.axes6)
 title('Map of the Communications Systems corridor')
+lim = axis;
+axis(lim)
 varargout{1} = handles.output;
 
 
@@ -177,16 +180,16 @@ oldz = data(3);
 %tmp5=[];
 temp = 1;
 
-trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
+%trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
 
 %% Main loop
 while(get(handles.togglebutton1,'value'))
     tic
     
     data = handles.a.readLatest;
-     trk1=trk1.add_data(data(1:2)*0.001);
+     handles.trk1.add_data(data(1:2)*0.001);
     temp = temp + 1;
-    traje1=trk1.getTraj()*1000;
+    traje1=handles.trk1.getTraj()*1000;
     
     posmm = data; % trk1.getPos;
     posx = origin(1) + posmm(1)*pixpermm_x;%testdata(1,temp);% %
@@ -206,7 +209,7 @@ while(get(handles.togglebutton1,'value'))
     oldx = posx;
     oldy = posy;
     
-   text = sprintf('sample time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',toc,posx,data(1),posy,data(2));
+   text = sprintf('Update time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',toc,posx,data(1),posy,data(2));
     set(handles.text2, 'String',text);
     %Give the button callback a chance to interrupt the opening fucntion
     handles = guidata(hObject);
@@ -224,11 +227,18 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 switch get(handles.popupmenu1,'Value')
     case 1
         handles.filter = 'butter';
+        handles.trk1.change_smoothing(handles.filter,0.1)
     case 2
         handles.filter = 'cheby1';
+        handles.trk1.change_smoothing(handles.filter,0.1)
     case 3
         handles.filter = 'cheby2';
+        handles.trk1.change_smoothing(handles.filter,0.1)
+    case 4
+        handles.filter = 'movingAvg';
+        handles.trk1.change_smoothing(handles.filter,10)
     otherwise
+
 end
 
 
