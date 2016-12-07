@@ -24,7 +24,7 @@ function varargout = gui_1_TOA(varargin)
 
 % Edit the above text to modify the response to help gui_1_TOA
 
-% Last Modified by GUIDE v2.5 02-Dec-2016 17:06:38
+% Last Modified by GUIDE v2.5 07-Dec-2016 10:40:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,10 +64,10 @@ delete(instrfind)
 end
 
 %% Startup input dialog
-prompt = {'Number of tags','Number of anchors'};
+prompt = {'Number of tags','Number of anchors','Enter the name of the serial port used'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'1','4'};
+defaultans = {'1','4','COM3'};
 numofstuf = inputdlg(prompt,dlg_title,num_lines,defaultans);
 numofanch = str2double(numofstuf(2));
 %%
@@ -84,7 +84,7 @@ handles.filter = 'butter';
 % Init aurduino
 if ~exist('a','var') || ~isvalid(a)
     %Open the serial port connection
-    handles.a = Arduino('COM3','%d %d %d %d %d %d %d %d %d %d %d %d');
+    handles.a = Arduino(numofstuf(3),'%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 %init tracker
 handles.trk1=tracker('cvcc',[4;4;0;0],eye(4),2,0.1,handles.filter);
@@ -200,6 +200,10 @@ zkf=kalmantracker(1,1,0.5,1.5,1.5,0.5,1);
 old_velox = 0;
     old_veloy = 0;
     oldz_pos = 0;
+    
+    hold(handles.axes2,'on')
+    hold(handles.axes3,'on')
+    hold(handles.axes4,'on')
 %% Main loop
 while(get(handles.togglebutton1,'value'))
     
@@ -280,15 +284,15 @@ while(get(handles.togglebutton1,'value'))
       xlim(handles.axes4,[temp - 20 temp]);
     end
       velo =  handles.trk1.getVelocities;
-    hold(handles.axes2,'on')
+   % hold(handles.axes2,'on')
     plot([(temp - 1) temp],[old_velox velo(1)],'r-','parent',handles.axes2)
-     hold(handles.axes2,'off')
-    hold(handles.axes3,'on')
+    % hold(handles.axes2,'off')
+    %hold(handles.axes3,'on')
     plot([(temp - 1) temp],[old_veloy velo(2)],'r-','parent',handles.axes3)
-    hold(handles.axes3,'off')
-    hold(handles.axes4,'on')
+    %hold(handles.axes3,'off')
+    %hold(handles.axes4,'on')
     plot([(temp - 1) temp],[oldz_pos zpos],'r-','parent',handles.axes4)
-    hold(handles.axes4,'off')
+    %hold(handles.axes4,'off')
    
     old_velox = velo(1);
     old_veloy = velo(2);
@@ -305,7 +309,7 @@ while(get(handles.togglebutton1,'value'))
         %traje1
     end
     
-    drawnow %limitrate
+    drawnow limitrate
     oldx = posx;
     oldy = posy;
     clock = toc;
@@ -393,6 +397,18 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.togglebutton1, 'Value', 0)
-%delete(handles.a)
+delete(handles.a)
 
+guidata(hObject,handles);
+
+
+% --- Executes on button press in pushbutton3.
+function pushbutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+lineshandle = findobj(handles.axes6,'type','line');
+              if ~isempty(lineshandle)
+                 delete(lineshandle)
+            end
 guidata(hObject,handles);
