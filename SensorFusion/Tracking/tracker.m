@@ -31,8 +31,6 @@ classdef tracker < handle
             %constant velocity, cartesian coordinates
             tau = 1/sample_freq;
             if strcmp(opt,'cvcc')
-                x0=x0;
-                p0=p0;
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
                 Q=1*diag([1 1 15 15]);
                 H=[1 0 0 0;0 1 0 0];
@@ -40,8 +38,8 @@ classdef tracker < handle
                 G=[1 0 tau^2/2 0;0 1 0 tau^2/2;0 0 tau 0; 0 0 0 tau];
                 obj.kf=kalmantracker(F,H,Q,R,x0,p0,G);
             elseif strcmp(opt,'ekfctcc')
-                x0=[0;0;-2;0;0.1];
-                p0=0.1*diag([15 15 2 2 2]);
+%                 x0=[0;0;-2;0;0.1];
+%                 p0=0.1*diag([15 15 2 2 2]);
                 Q=0.0005*diag([1 1 10 10 2]);
                 H=[1 0 0 0 0;0 1 0 0 0];
                 R=2*[1,0;0,1];
