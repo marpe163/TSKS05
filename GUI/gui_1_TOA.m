@@ -277,7 +277,7 @@ while(get(handles.togglebutton1,'value'))
     %
     handles.room.set_tag_pos(posx,posy,1); % gives the tag its position on the map
     %%%%%%%%%%%%%%%% plotting axes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   % axes2plot(1,axesindex) = posx;
+   
     if temp > 20
     xlim(handles.axes2,[temp - 20 temp]);
     xlim(handles.axes3,[temp - 20 temp]);
@@ -299,7 +299,8 @@ while(get(handles.togglebutton1,'value'))
     oldz_pos = zpos;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if size(traje1,2)>2
-           lineshandle = findobj(handles.axes6,'type','line');
+        % add if statement for moving avg   
+        lineshandle = findobj(handles.axes6,'type','line');
               if ~isempty(lineshandle)
                  delete(lineshandle)
             end
@@ -332,18 +333,18 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 switch get(handles.popupmenu1,'Value')
     case 1
          handles.filter = 'butter';
-        handles.trk1.change_smoothing(handles.filter,0.1)
+        handles.trk1.change_smoothing(handles.filter,0.1);
         
     case 2
         handles.filter = 'cheby1';
-        handles.trk1.change_smoothing(handles.filter,0.1)
+        handles.trk1.change_smoothing(handles.filter,0.1);
     case 3
         handles.filter = 'cheby2';
-        handles.trk1.change_smoothing(handles.filter,0.1)
+        handles.trk1.change_smoothing(handles.filter,0.1);
     case 4
       
          handles.filter = 'movingAvg';
-        handles.trk1.change_smoothing(handles.filter,10)
+        handles.trk1.change_smoothing(handles.filter,10);
     otherwise
 end
 
@@ -410,5 +411,6 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 lineshandle = findobj(handles.axes6,'type','line');
               if ~isempty(lineshandle)
                  delete(lineshandle)
-            end
+              end
+            handles.trk1.resetTrajectory();
 guidata(hObject,handles);
