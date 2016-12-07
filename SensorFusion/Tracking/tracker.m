@@ -90,7 +90,9 @@ classdef tracker < handle
             
            obj.kf=obj.kf.measurementNoiseUpdate(dx,dy,const,expo) ;
         end
-        
+        function obj=resetTrajectory(obj)
+            obj.trj=trajectory(smoothingType_,cutoffFreq_movAvgOrder);
+        end
     end
 end
    
