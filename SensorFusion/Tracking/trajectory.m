@@ -1,4 +1,4 @@
-classdef trajectory
+classdef trajectory < handle
     %Implementation of a kalman filter for iterative filtering. Updates
     %with each new measurement.
     %   Detailed explanation goes here
@@ -31,6 +31,10 @@ classdef trajectory
             
         end
         
+        function obj = reset_Trajectory(obj)
+            obj.y = [];
+            obj.traj = [];
+        end
         
         function obj = change_smoothfilter(obj,new_filteringType,cutoffFreq_movAvgOrder)
             obj.filtertype = new_filteringType;
