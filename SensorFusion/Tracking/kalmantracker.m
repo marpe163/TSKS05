@@ -42,7 +42,9 @@ classdef kalmantracker
             obj.y=[obj.y yk];
             K=obj.Pk*obj.H'*inv(obj.H*obj.Pk*obj.H'+obj.R);
             obj.xk=obj.xk+K*(yk-obj.H*obj.xk);
-            obj.trajectory=[obj.trajectory [obj.xk(1);obj.xk(2)]];
+            if length(obj.xk)>1
+                obj.trajectory=[obj.trajectory [obj.xk(1);obj.xk(2)]];
+            end
             obj.Pk=obj.Pk-K*obj.H*obj.Pk;
   
         end

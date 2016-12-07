@@ -59,8 +59,9 @@ function gui_1_TOA_OpeningFcn(hObject, eventdata, handles, varargin)
 %init
 
 handles.output = hObject;
-
+if ~isempty(instrfind)
 delete(instrfind)
+end
 
 %% Startup input dialog
 prompt = {'Number of tags','Number of anchors'};
@@ -86,7 +87,8 @@ if ~exist('a','var') || ~isvalid(a)
     handles.a = Arduino('COM3','%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 %init tracker
-handles.trk1=tracker('cvcc',1,1,2,0.1,handles.filter);
+handles.trk1=tracker('cvcc',[4;4;0;0],eye(4),2,0.1,handles.filter);
+
 %
 for i = 1 : length(handles.tagID{1}(:,1))
     % This for loops ads the tags to the map
@@ -126,11 +128,14 @@ function varargout = gui_1_TOA_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 axes(handles.axes2)
-title('Sensor 1')
+ylim([-5 5]);
+title('v_x')
 axes(handles.axes3)
-title('Sensor 2')
+ylim([-5 5]);
+title('v_y')
 axes(handles.axes4)
-title('Sensor 3')
+title('z-pos')
+ylim([0 2.5]);
 axes(handles.axes6)
 title('Map of the Communications Systems corridor')
 lim = axis;
@@ -162,7 +167,7 @@ origin = handles.room.Anchor_list(1).pos;%[pixpermm_x*2100 pixpermm_y*6000];
 % Skale axes
 map_size = size(handles.room.get_pic);
 pixpermm_x = map_size(2)/30000;
-pixpermm_y = map_size(1)/10000;
+pixpermm_y = map_size(1)/12000;
 
 % Inital value for position
 data = handles.a.readLatest;
@@ -172,14 +177,7 @@ oldz = data(3);
 % Below is for 3D plot
 % set(handles.axes6,'view',[-37.5 30]);
 %grid(handles.axes6,'on');
-%% testdata
 
-% s = load('20161114commsyscorridor1.mat');
-% testdata = s.data;
-% testdata(1,:) = testdata(1,:)*pixpermm_x;
-% testdata(2,:) = testdata(2,:)*pixpermm_y;
-%% init Tracekr
-%tmp5=[];
 temp = 1;
 %% for TOA
 pos = [];
@@ -194,21 +192,19 @@ senspos=[
 
 count = 0;
 clock = 0;
+
+old = [0 0 0 0 0 0; 1 1 1 1 1 1; 1:6];
+
+zkf=kalmantracker(1,1,0.5,1.5,1.5,0.5,1);
+
+old_velox = 0;
+    old_veloy = 0;
+    oldz_pos = 0;
 %% Main loop
 while(get(handles.togglebutton1,'value'))
     
    
-    count = count+1;
-    if count > 20
-        
-        delete(handles.a);
-        handles.a = Arduino('COM3','%d %d %d %d %d %d %d %d %d %d %d %d');
-        count = 0;
-        
-        guidata(hObject, handles);
-        
-        
-    end
+   
     tic 
     data = handles.a.readLatest;
     %TOA
@@ -217,10 +213,13 @@ while(get(handles.togglebutton1,'value'))
     sensor_index = 1:6;
     % Filter out the outlier values
     tmp = [distance'; RSS'; sensor_index];
+    % First remove stale values
+    tmp = tmp(:,old(1,:) ~= tmp(1,:));
     tmp = tmp(:,tmp(1,:)<50);
     tmp = tmp(:,tmp(2,:)<0);
     tmp = tmp(:,tmp(2,:)>-200);
-    
+    % Save the values for comparison next iteration
+    old = [distance'; RSS'; sensor_index];
     % Break if we have less than four data points
     if(size(tmp,2) < 3)
         continue;
@@ -234,18 +233,35 @@ while(get(handles.togglebutton1,'value'))
     sensor_index_sorted = sensor_index(index);
     
     % Take the four measurements with the best RSS
-    if length(distance_sorted) > 3
-        d = distance_sorted(1:4);
-        xpos=[xpos toa_positioning(senspos(sensor_index_sorted(1:4),:),d',[-5  10])];
-        info_mode = sprintf('More than three anchors\n');
-    elseif length(distance_sorted) == 3
-        d = distance_sorted(1:3);
-        xpos=[xpos [toa_positioning2D(senspos(sensor_index_sorted(1:3),:),d',[-5  10]); 0]];
-        info_mode = sprintf('Three anchors\n');
+    d = distance_sorted(1:3);
+    zpos=1.5;
+    if size(tmp,2) > 3
+    testvar=distance_sorted(1:4);
+    ba2=senspos(sensor_index_sorted(1:4),:);
+    xpos2=toa_positioning(ba2,testvar,[-5 10]);
+    zpos=xpos2(3);
+    zkf=zkf.measurementupdate(zpos);
+    zkf=zkf.timeupdate();
+    zpos=zkf.xk;
     end
+    
+    best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
+    
+    xpos=[xpos [toa_positioning2D(best_anchors_pos,d',[-5  10]); 0]];
+    info_mode = sprintf('Three anchors\n');
+    
+    c = 1000;
+    exp = 3;
+    % Calculate the delta x and delta y between selected anchors
+    dx = max(best_anchors_pos(:,1))-min(best_anchors_pos(:,1));
+    dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
+   % fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
+    
     posx = origin(1) + xpos(1,end)*pixpermm_x*1000;%testdata(1,temp);
     posy = origin(2) - xpos(2,end)*pixpermm_y*1000;%testdata(2,temp);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    handles.trk1.measurementNoiseUpdate(dx,dy,c,exp);
+
     handles.trk1.add_data([xpos(1,end);xpos(2,end)]);
     temp = temp + 1;
     traje1=handles.trk1.getTraj()*1000;
@@ -255,27 +271,48 @@ while(get(handles.togglebutton1,'value'))
     % posy = origin(2) - posmm(2)*pixpermm_y;%testdata(2,temp); % %
     % posz = origin(3) + testdata(3,temp);%data(3);
     %
-    
-    
     handles.room.set_tag_pos(posx,posy,1); % gives the tag its position on the map
-    
+    %%%%%%%%%%%%%%%% plotting axes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   % axes2plot(1,axesindex) = posx;
+    if temp > 20
+    xlim(handles.axes2,[temp - 20 temp]);
+    xlim(handles.axes3,[temp - 20 temp]);
+      xlim(handles.axes4,[temp - 20 temp]);
+    end
+      velo =  handles.trk1.getVelocities;
+    hold(handles.axes2,'on')
+    plot([(temp - 1) temp],[old_velox velo(1)],'r-','parent',handles.axes2)
+     hold(handles.axes2,'off')
+    hold(handles.axes3,'on')
+    plot([(temp - 1) temp],[old_veloy velo(2)],'r-','parent',handles.axes3)
+    hold(handles.axes3,'off')
+    hold(handles.axes4,'on')
+    plot([(temp - 1) temp],[oldz_pos zpos],'r-','parent',handles.axes4)
+    hold(handles.axes4,'off')
+   
+    old_velox = velo(1);
+    old_veloy = velo(2);
+    oldz_pos = zpos;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if size(traje1,2)>2
-        %   lineshandle = findobj('type','line');
-        %      if ~isempty(lineshandle)
-        %         delete(lineshandle)
-        %    end
+           lineshandle = findobj(handles.axes6,'type','line');
+              if ~isempty(lineshandle)
+                 delete(lineshandle)
+            end
+        
         plot(origin(1) + traje1(1,:)*pixpermm_x, origin(2) - traje1(2,:)*pixpermm_y,'r-','parent',handles.axes6)
+        %disp('plotting traje1')
         %traje1
     end
     
-    drawnow limitrate
+    drawnow %limitrate
     oldx = posx;
     oldy = posy;
     clock = toc;
     text = sprintf('sample time: %d\nx_pos: %d  x_data: %d\ny_pos: %d y_data: %d',clock,posx,distance(1),posy,distance(2));
     set(handles.text2, 'String',text);
     %Give the button callback a chance to interrupt the opening fucntion
-    
+    guidata(hObject, handles);
     handles = guidata(hObject);
     
 end
@@ -290,8 +327,9 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 switch get(handles.popupmenu1,'Value')
     case 1
-        handles.filter = 'butter';
+         handles.filter = 'butter';
         handles.trk1.change_smoothing(handles.filter,0.1)
+        
     case 2
         handles.filter = 'cheby1';
         handles.trk1.change_smoothing(handles.filter,0.1)
@@ -299,7 +337,8 @@ switch get(handles.popupmenu1,'Value')
         handles.filter = 'cheby2';
         handles.trk1.change_smoothing(handles.filter,0.1)
     case 4
-        handles.filter = 'movingAvg';
+      
+         handles.filter = 'movingAvg';
         handles.trk1.change_smoothing(handles.filter,10)
     otherwise
 end
@@ -354,6 +393,6 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.togglebutton1, 'Value', 0)
-delete(handles.a)
+%delete(handles.a)
 
 guidata(hObject,handles);

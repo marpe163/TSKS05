@@ -34,7 +34,7 @@ classdef tracker < handle
                 x0=x0;
                 p0=p0;
                 F=[1 0 x0(3) 0; 0 1 0 x0(4);0 0 1 0;0 0 0 1];
-                Q=1*diag([1 1 10 10]);
+                Q=1*diag([1 1 15 15]);
                 H=[1 0 0 0;0 1 0 0];
                 R=10*[1,0;0,1];
                 G=[1 0 tau^2/2 0;0 1 0 tau^2/2;0 0 tau 0; 0 0 0 tau];
@@ -83,6 +83,10 @@ classdef tracker < handle
                cov=obj.kf.Pk;
                cov=cov(1:2,1:2);
             
+        end
+        function velocities=getVelocities(obj)
+           velocities=obj.kf.xk;
+           velocities=velocities(3:4);
         end
         function obj=measurementNoiseUpdate(obj,dx,dy,const,expo)
             
