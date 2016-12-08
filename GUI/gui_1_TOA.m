@@ -24,7 +24,7 @@ function varargout = gui_1_TOA(varargin)
 
 % Edit the above text to modify the response to help gui_1_TOA
 
-% Last Modified by GUIDE v2.5 07-Dec-2016 10:40:44
+% Last Modified by GUIDE v2.5 07-Dec-2016 16:14:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,21 +60,21 @@ function gui_1_TOA_OpeningFcn(hObject, eventdata, handles, varargin)
 
 handles.output = hObject;
 if ~isempty(instrfind)
-delete(instrfind)
+    delete(instrfind)
 end
 
 %% Startup input dialog
 prompt = {'Number of tags','Number of anchors','Enter the name of the serial port used'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'1','4','COM3'};
+defaultans = {'1','6','COM3'};
 numofstuf = inputdlg(prompt,dlg_title,num_lines,defaultans);
 numofanch = str2double(numofstuf(2));
 %%
-prompt = {'Enter the tag ID (one ID per line)','Enter the Anchor ID (one ID per line)',};
+prompt = {'Enter the tag ID (one ID per line)','Enter the Anchor ID (one ID per line)','Default anchor placement? Y/N'};
 dlg_title = 'Input';
 num_lines = 1;%str2double(numoftags(2));
-defaultans = {'tagID','id1','id2'};
+defaultans = {'tagID','id1','Y'};
 tagID = inputdlg(prompt,dlg_title,num_lines,defaultans);
 %% Settup objects as fields within handles
 handles.tagID = tagID;
@@ -87,7 +87,7 @@ if ~exist('a','var') || ~isvalid(a)
     handles.a = Arduino(numofstuf(3),'%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 %init tracker
-handles.trk1=tracker('cvcc',[4;4;0;0],eye(4),2,0.1,handles.filter);
+handles.trk1=tracker('cvcc',[25;2;-0.5;0],eye(4),2,0.1,handles.filter);
 
 %
 for i = 1 : length(handles.tagID{1}(:,1))
@@ -98,13 +98,35 @@ for i = 1 : length(handles.tagID{1}(:,1))
 end
 
 % placement of anchors the first placement is the origin anchor
+map_size = size(handles.room.get_pic);
+pixpermm_x = map_size(2)/30000;
+pixpermm_y = map_size(1)/12000;
+if strcmp(tagID(3),'Y')
+%
+senspos=[
+    14.75 0.30 1.60;
+    4.95 0.00 1.60;
+    -2.10 2.30 1.95;
+    25.25 2.25 1.05;
+    9.75 1.90 2.40;
+    -2.25 7.00 1.00];
+senspos(:,1) = senspos(:,1)*pixpermm_x*1000;
+senspos(:,2) = -senspos(:,2)*pixpermm_y*1000;
+origin = [100.6358 212.0232];
+ handles.room.Anchor_list = [handles.room.Anchor_list Anchor(origin,5,'green')];
+ for anch = 1:numofanch
+    x = origin + senspos(anch,1:2);
+    handles.room.Anchor_list = [handles.room.Anchor_list Anchor(x,5,'blue')];
+end
+else
 set(handles.text2, 'String','Place out the origin anchor');
-[x y] = getpts(handles.axes6);
+[x y] = getpts(handles.axes6)
 handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'green')];
 set(handles.text2, 'String','Place out the res of the anchors');
 for anch = 1:(numofanch - 1)
-    [x y] = getpts(handles.axes6);
+    [x y] = getpts(handles.axes6)
     handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
+end
 end
 %%
 
@@ -157,7 +179,16 @@ if(get(handles.togglebutton1,'value'))
     if ~isempty(h)
         delete(h)
     end
+    set(handles.popupmenu1,'Enable','off')
+    set(handles.pushbutton3,'Enable','off')
 end
+if(~get(handles.togglebutton1,'value'))
+    % If the togglebotton is pressed down this is statement will be true
+    % delete lineplots on axes before starting over.
+    set(handles.popupmenu1,'Enable','on')
+    set(handles.pushbutton3,'Enable','on')
+end
+
 
 %% Here is where our main function goes.
 
@@ -198,18 +229,18 @@ old = [0 0 0 0 0 0; 1 1 1 1 1 1; 1:6];
 zkf=kalmantracker(1,1,0.5,1.5,1.5,0.5,1);
 
 old_velox = 0;
-    old_veloy = 0;
-    oldz_pos = 0;
-    
-    hold(handles.axes2,'on')
-    hold(handles.axes3,'on')
-    hold(handles.axes4,'on')
+old_veloy = 0;
+oldz_pos = 0;
+
+hold(handles.axes2,'on')
+hold(handles.axes3,'on')
+hold(handles.axes4,'on')
 %% Main loop
 while(get(handles.togglebutton1,'value'))
     
-   
-   
-    tic 
+    
+    
+    tic
     data = handles.a.readLatest;
     %TOA
     distance = data(1:6) / 1000;
@@ -240,13 +271,13 @@ while(get(handles.togglebutton1,'value'))
     d = distance_sorted(1:3);
     zpos=1.5;
     if size(tmp,2) > 3
-    testvar=distance_sorted(1:4);
-    ba2=senspos(sensor_index_sorted(1:4),:);
-    xpos2=toa_positioning(ba2,testvar,[-5 10]);
-    zpos=xpos2(3);
-    zkf=zkf.measurementupdate(zpos);
-    zkf=zkf.timeupdate();
-    zpos=zkf.xk;
+        testvar=distance_sorted(1:4);
+        ba2=senspos(sensor_index_sorted(1:4),:);
+        xpos2=toa_positioning(ba2,testvar,[-5 10]);
+        zpos=xpos2(3);
+        zkf=zkf.measurementupdate(zpos);
+        zkf=zkf.timeupdate();
+        zpos=zkf.xk;
     end
     
     best_anchors_pos = senspos(sensor_index_sorted(1:3),:);
@@ -259,13 +290,13 @@ while(get(handles.togglebutton1,'value'))
     % Calculate the delta x and delta y between selected anchors
     dx = max(best_anchors_pos(:,1))-min(best_anchors_pos(:,1));
     dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
-   % fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
+    % fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
     
     posx = origin(1) + xpos(1,end)*pixpermm_x*1000;%testdata(1,temp);
     posy = origin(2) - xpos(2,end)*pixpermm_y*1000;%testdata(2,temp);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handles.trk1.measurementNoiseUpdate(dx,dy,c,exp);
-
+    
     handles.trk1.add_data([xpos(1,end);xpos(2,end)]);
     temp = temp + 1;
     traje1=handles.trk1.getTraj()*1000;
@@ -277,14 +308,14 @@ while(get(handles.togglebutton1,'value'))
     %
     handles.room.set_tag_pos(posx,posy,1); % gives the tag its position on the map
     %%%%%%%%%%%%%%%% plotting axes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   
+    
     if temp > 20
-    xlim(handles.axes2,[temp - 20 temp]);
-    xlim(handles.axes3,[temp - 20 temp]);
-      xlim(handles.axes4,[temp - 20 temp]);
+        xlim(handles.axes2,[temp - 20 temp]);
+        xlim(handles.axes3,[temp - 20 temp]);
+        xlim(handles.axes4,[temp - 20 temp]);
     end
-      velo =  handles.trk1.getVelocities;
-   % hold(handles.axes2,'on')
+    velo =  handles.trk1.getVelocities;
+    % hold(handles.axes2,'on')
     plot([(temp - 1) temp],[old_velox velo(1)],'r-','parent',handles.axes2)
     % hold(handles.axes2,'off')
     %hold(handles.axes3,'on')
@@ -293,17 +324,17 @@ while(get(handles.togglebutton1,'value'))
     %hold(handles.axes4,'on')
     plot([(temp - 1) temp],[oldz_pos zpos],'r-','parent',handles.axes4)
     %hold(handles.axes4,'off')
-   
+    
     old_velox = velo(1);
     old_veloy = velo(2);
     oldz_pos = zpos;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if size(traje1,2)>2
-        % add if statement for moving avg   
+        % add if statement for moving avg
         lineshandle = findobj(handles.axes6,'type','line');
-              if ~isempty(lineshandle)
-                 delete(lineshandle)
-            end
+        if ~isempty(lineshandle)
+            delete(lineshandle)
+        end
         
         plot(origin(1) + traje1(1,:)*pixpermm_x, origin(2) - traje1(2,:)*pixpermm_y,'r-','parent',handles.axes6)
         %disp('plotting traje1')
@@ -318,7 +349,7 @@ while(get(handles.togglebutton1,'value'))
     set(handles.text2, 'String',text);
     %Give the button callback a chance to interrupt the opening fucntion
     guidata(hObject, handles);
-    handles = guidata(hObject);
+   % handles = guidata(hObject);
     
 end
 %handles = guidata(hObject);
@@ -332,7 +363,7 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 switch get(handles.popupmenu1,'Value')
     case 1
-         handles.filter = 'butter';
+        handles.filter = 'butter';
         handles.trk1.change_smoothing(handles.filter,0.1);
         
     case 2
@@ -342,8 +373,8 @@ switch get(handles.popupmenu1,'Value')
         handles.filter = 'cheby2';
         handles.trk1.change_smoothing(handles.filter,0.1);
     case 4
-      
-         handles.filter = 'movingAvg';
+        
+        handles.filter = 'movingAvg';
         handles.trk1.change_smoothing(handles.filter,10);
     otherwise
 end
@@ -409,8 +440,9 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 lineshandle = findobj(handles.axes6,'type','line');
-              if ~isempty(lineshandle)
-                 delete(lineshandle)
-              end
-            handles.trk1.resetTrajectory();
+if ~isempty(lineshandle)
+    delete(lineshandle)
+end
+handles.trk1.resetTrajectory();
 guidata(hObject,handles);
+
