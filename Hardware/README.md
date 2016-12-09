@@ -17,11 +17,6 @@ This directory contains the following:
 - `TOAPositioning`: Do positioning with TOA, compare with Pozyx built-in positioning.
 - `TOAPositioningRSS`: TOA positioning with received signal strength.
 
-The following applications use the same Arduino code from `GenerateTestData`:
-
-- `RealtimeEstimate`: Combine code from SensorFusion to draw realtime estimates.
-- `RealtimeEstimateWIP`: Combine code from SensorFusion to draw realtime estimates, with expected trajectory. Not stable.
-
 ## Test Data
 
 `TestData` includes Matlab data with output from the applications, useful for testing.
