@@ -78,8 +78,8 @@ while true
 
    
 
-    c = 1000;
-    exp = 3;
+    const = 100;
+    expo = 2;
   
     % Change variance according to the anchors with best signal
     
@@ -91,7 +91,10 @@ while true
 
 
     if mod(counter,11)==10
-    xkvec=[xkvec kalleman.xk]
+    dx = max(best_anchors_pos(:,1))-min(best_anchors_pos(:,1));
+    dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
+    kalleman=kalleman.measurementNoiseUpdate(dx,xy,const,expo);
+    xkvec=[xkvec kalleman.xk];
     kalleman=kalmantracker(eye(2),eye(2),zeros(2,2),C*diag([1 1]),[0;0],10*eye(2),eye(2));
     end
   
