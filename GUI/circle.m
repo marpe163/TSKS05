@@ -1,7 +1,11 @@
 classdef circle < handle
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
+    % The circle class is used to represent the tag 
     
+    % The class needs to know its location on the map and its tag ID
+    % Besides that the tag is represented by a image, in this case its a 
+    % square with a color chosen in the constructor.
+    % Using the class involves methods for setting the position and
+    % retreving the image.
     properties
         Xpos
         Ypos
