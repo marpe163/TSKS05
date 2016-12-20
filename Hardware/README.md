@@ -2,7 +2,7 @@
 
 This directory contains the following:
 
-- Arduino code for the Pozyx platform
+- MATLAB code for the Pozyx platform
 - Matlab code to communicate with Arduino on serial port
 - Test data generated from the real hardware
 
@@ -11,11 +11,25 @@ This directory contains the following:
 `Applications` contains the code, divided into individual units known to work.
 
 - `CoordVarCovar`: Report coordinates, variances and covariances from Pozyx to Matlab.
-- `Ranging`: Report ranges from tag to anchors over serial port. 
+- `Ranging`: Report ranges from tag to anchors over serial port.
 - `GenerateTestData`: Report coordinates from Pozyx to Matlab.
 - `Arduino`: Object-oriented interface in Matlab to communicate with Arduino over serial port, with example usage script.
 - `TOAPositioning`: Do positioning with TOA, compare with Pozyx built-in positioning.
 - `TOAPositioningRSS`: TOA positioning with received signal strength.
+
+## ArduinoSketches
+
+`ArduinoSketches` contains the Arduino sketches (programs) used in the project.
+
+- `CoordVarCovar`: Report coordinates, variances and covariances. Works with the MATLAB application of the same name.
+- `Position`: Report the position using the build-in positioning of Pozyx. Used with the `GenerateTestData` application.
+- `RangeRSS`: Report the range and received signal strength to anchors. Used in `TOAPositioningRSS` application and the GUI with TOA.
+
+Note that the user needs to check and update the following data in the sketches to match the hardware setup:
+
+- Number of anchors
+- Anchor identifiers (Must also match those coded in the MATLAB scripts)
+- Anchor positions (For using the built-in positioning of Pozyx)
 
 ## Test Data
 
