@@ -58,52 +58,45 @@ function gui_1_TOA_OpeningFcn(hObject, eventdata, handles, varargin)
 %init
 
 handles.output = hObject;
-% Check if any serial port are open and close them
-if ~isempty(instrfind)
-    delete(instrfind)
-end
+
+addpath('../SensorFusion/Positioning');
+addpath('../SensorFusion/Tracking');
+addpath('../Hardware/Applications/Arduino');
 
 %% Startup input dialog
-prompt = {'Number of tags','Number of anchors','Enter the name of the serial port used','Enter filter type KF/EKF'};
-dlg_title = 'Settup stage 1';
+prompt = {'Number of anchors',
+    'Enter the name of the serial port used',
+    'Enter filter type KF/EKF',
+    'Default anchor placement? Y/N',
+    'Enter cutoff frequency for smoothing',
+    'Enter moving average order'};
+dlg_title = 'Settup';
 num_lines = 1;
-defaultans = {'1','6','COM4','KF'};
+defaultans = {'6','COM3','KF','Y','0.2','10'};
 numofstuf = inputdlg(prompt,dlg_title,num_lines,defaultans);
-numofanch = str2double(numofstuf(2));
-%% Second input dialog to user that is dependent of the first input dialog
-% This prompt does not serve a perpouse for this program but can be 
-% usefull for further development
-prompt = {'Enter the tag ID (one ID per line)','Default anchor placement? Y/N','Enter cutofffrequency' ,'Enter moving average order'};
-dlg_title = 'Settup stage 2';
-num_lines = 1;
-defaultans = {'tagID','Y','0.2','10'};
-tagID = inputdlg(prompt,dlg_title,num_lines,defaultans);
+numofanch = str2double(numofstuf(1));
+
 %% Settup objects as fields within handles
-handles.tagID = tagID;
 handles.room = map('comsyshall2test3.png'); % ojbect for the map
 imshow(handles.room.get_pic) % display the map on the GUI
 handles.filter = 'movingAvg'; %choose default filter type
-% save valus that is used later 
-handles.cutoff = str2double(tagID(3));
-handles.moveorder = str2double(tagID(4));
+handles.cutoff = str2double(numofstuf(5));
+handles.moveorder = str2double(numofstuf(6));
 % Init aurduino
 if ~exist('a','var') || ~isvalid(a)
     %Open the serial port connection
-    handles.a = Arduino(numofstuf(3),'%d %d %d %d %d %d %d %d %d %d %d %d');
+    handles.a = Arduino(numofstuf(2),'%d %d %d %d %d %d %d %d %d %d %d %d');
 end
 %% Init tracker
-if strcmp(numofstuf(4),'KF')
-handles.trk1=tracker('cvcc',[25;2;-0.5;0],eye(4),2,handles.moveorder,handles.filter);
+if strcmp(numofstuf(3),'KF')
+    handles.trk1=tracker('cvcc',[25;2;-0.5;0],eye(4),2,handles.moveorder,handles.filter);
 else
- handles.trk1=tracker('ekfctcc',[25;2;-0.5;0],eye(4),2,handles.moveorder,handles.filter);   
+    handles.trk1=tracker('ekfctcc',[25;2;-0.5;0.1;0.5],100*diag([1 1 1 1 0.05]),2,handles.moveorder,handles.filter);
 end
-%
-for i = 1 : length(handles.tagID{1}(:,1))
-    % This for loops ads the tags to the map
-    % circle is the class for making tags
-    handles.room.tag_list = [handles.room.tag_list circle('red',5,handles.tagID{1}(i,:))];
-    
-end
+
+% Add the tag to the maps tag list
+handles.room.tag_list = [handles.room.tag_list circle('red',5,'tagId')];
+
 
 %% placement of anchors and origin
 %  The origin is saved as a anchor in the map object
@@ -111,33 +104,33 @@ end
 map_size = size(handles.room.get_pic);
 pixpermm_x = map_size(2)/30000;
 pixpermm_y = map_size(1)/12000;
-if strcmp(tagID(2),'Y')
-% Settup for default anchor position
-senspos=[
-    14.75 0.30 1.60;
-    4.95 0.00 1.60;
-    -2.10 2.30 1.95;
-    25.25 2.25 1.05;
-    9.75 1.90 2.40;
-    -2.25 7.00 1.00]; % These are in meters
-senspos(:,1) = senspos(:,1)*pixpermm_x*1000;
-senspos(:,2) = -senspos(:,2)*pixpermm_y*1000;
-origin = [100.6358 212.0232];
- handles.room.Anchor_list = [handles.room.Anchor_list Anchor(origin,5,'green')];
- for anch = 1:numofanch
-    x = origin + senspos(anch,1:2);
-    handles.room.Anchor_list = [handles.room.Anchor_list Anchor(x,5,'blue')];
-end
+if strcmp(numofstuf(4),'Y')
+    % Settup for default anchor position
+    senspos=[
+        14.75 0.30 1.60;
+        4.95 0.00 1.60;
+        -2.10 2.30 1.95;
+        25.25 2.25 1.05;
+        9.75 1.90 2.40;
+        -2.25 7.00 1.00]; % These are in meters
+    senspos(:,1) = senspos(:,1)*pixpermm_x*1000;
+    senspos(:,2) = -senspos(:,2)*pixpermm_y*1000;
+    origin = [100.6358 212.0232];
+    handles.room.Anchor_list = [handles.room.Anchor_list Anchor(origin,5,'green')];
+    for anch = 1:numofanch
+        x = origin + senspos(anch,1:2);
+        handles.room.Anchor_list = [handles.room.Anchor_list Anchor(x,5,'blue')];
+    end
 else
     % Setup anchor positions manually
-set(handles.text2, 'String','Place out the origin');
-[x y] = getpts(handles.axes6);
-handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'green')];
-set(handles.text2, 'String','Place out the anchors');
-for anch = 1:numofanch
+    set(handles.text2, 'String','Place out the origin');
     [x y] = getpts(handles.axes6);
-    handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
-end
+    handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'green')];
+    set(handles.text2, 'String','Place out the anchors');
+    for anch = 1:numofanch
+        [x y] = getpts(handles.axes6);
+        handles.room.Anchor_list = [handles.room.Anchor_list Anchor([x y],5,'blue')];
+    end
 end
 %%
 
@@ -174,21 +167,22 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
- % If the togglebotton is pressed down this is statement will be true
- % delete lineplots on axes before starting over.
+% If the togglebotton is pressed down this is statement will be true
+% delete lineplots on axes before starting over.
 if(get(handles.togglebutton1,'value'))
     lineshandle = findobj([handles.axes2 handles.axes3 handles.axes4],'type','line');
-   
-        if ~isempty(lineshandle)
-            delete(lineshandle)
-        end
+    
+    if ~isempty(lineshandle)
+        delete(lineshandle)
+    end
+    
     set(hObject, 'BackgroundColor',[1 0 0])
     set(hObject, 'String','Stop')
-    set(handles.popupmenu1,'Enable','off') 
+    set(handles.popupmenu1,'Enable','off')
     set(handles.pushbutton3,'Enable','off')
 else
     set(hObject, 'BackgroundColor',[0 1 0])
-     set(hObject, 'String','Start')
+    set(hObject, 'String','Start')
     set(handles.popupmenu1,'Enable','on')
     set(handles.pushbutton3,'Enable','on')
 end
@@ -196,7 +190,7 @@ end
 
 %% Here is where our main function goes.
 
-% Define the origin 
+% Define the origin
 origin = handles.room.Anchor_list(1).pos;
 
 % Skale axes for the map
@@ -294,23 +288,23 @@ while(get(handles.togglebutton1,'value'))
     dy = max(best_anchors_pos(:,2))-min(best_anchors_pos(:,2));
     % fprintf('\ndx=%6.3f dy=%6.3f', dx, dy);
     
-    % Set the estimated tag position with posx and posy 
+    % Set the estimated tag position with posx and posy
     % skaling from meter to pixels on the map is also done here
     posx = origin(1) + xpos(1,end)*pixpermm_x*1000;%
     posy = origin(2) - xpos(2,end)*pixpermm_y*1000;%
     
-    % 
+    %
     handles.trk1.measurementNoiseUpdate(dx,dy,c,exp);
     
     handles.trk1.add_data([xpos(1,end);xpos(2,end)]);
     temp = temp + 1;
     traje1=handles.trk1.getTraj()*1000;
     
-    posmm = data; 
-  
+    posmm = data;
+    
     % Give the tag its position on the map
-    handles.room.set_tag_pos(posx,posy,1); 
-    %%%%%%%%%%%%%%%% plotting axes %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    handles.room.set_tag_pos(posx,posy,1);
+  
     
     if temp > 20
         xlim(handles.axes2,[temp - 20 temp]);
@@ -320,16 +314,15 @@ while(get(handles.togglebutton1,'value'))
     velo =  handles.trk1.getVelocities;
     
     plot([(temp - 1) temp],[old_velox velo(1)],'r-','parent',handles.axes2)
- 
+    
     plot([(temp - 1) temp],[old_veloy velo(2)],'r-','parent',handles.axes3)
     
     plot([(temp - 1) temp],[oldz_pos zpos],'r-','parent',handles.axes4)
-   
+    
     
     old_velox = velo(1);
     old_veloy = velo(2);
     oldz_pos = zpos;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if size(traje1,2)>2
         
         lineshandle = findobj(handles.axes6,'type','line');
@@ -348,7 +341,7 @@ while(get(handles.togglebutton1,'value'))
     set(handles.text2, 'String',text);
     
     guidata(hObject, handles);
-   
+    
     
 end
 
@@ -363,7 +356,7 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 switch get(handles.popupmenu1,'Value')
     case 1
         handles.filter = 'movingAvg';
-        handles.trk1.change_smoothing(handles.filter,handles.moveorder);  
+        handles.trk1.change_smoothing(handles.filter,handles.moveorder);
         
     case 2
         handles.filter = 'cheby1';
@@ -394,11 +387,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-% --- Executes on mouse press over axes background.
-function axes6_ButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to axes6 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 % --- Executes during object deletion, before destroying properties.
 function figure1_DeleteFcn(hObject, eventdata, handles)

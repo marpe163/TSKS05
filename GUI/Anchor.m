@@ -1,6 +1,8 @@
 classdef Anchor < handle
-    %UNTITLED4 Summary of this class goes here
-    %   Detailed explanation goes here
+    % This class handles the anchor position and where it is drawn on the
+    % map. It only has one method for setting its position.
+    % The consturor takes three arguments: Firs a position as a row vector
+    % of lenght two, the raduis and the color of the anchor.
     
     properties
         pos
@@ -10,6 +12,7 @@ classdef Anchor < handle
     end
     
     methods
+        
         function obj = Anchor(pos,rad,color)
         obj.pos = pos;
         obj.on_img = rectangle('Curvature',[1 0],'Facecolor',color);
