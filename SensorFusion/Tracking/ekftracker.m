@@ -38,11 +38,15 @@ classdef ekftracker
            obj.T=tau;
            
         end
+        
+        %Time update
         function obj=timeupdate(obj)
             obj.F=obj.getfprime(obj.xk);
             obj.xk=obj.coord_turn(obj.xk); 
             obj.Pk=obj.F*obj.Pk*obj.F'+obj.G*obj.Q*obj.G';
         end
+        
+        %Measurement update
         function obj=measurementupdate(obj,yk)
             obj.y=[obj.y yk];           
             K=obj.Pk*obj.H'*inv(obj.H*obj.Pk*obj.H'+obj.R);
@@ -51,6 +55,8 @@ classdef ekftracker
             obj.Pk=obj.Pk-K*obj.H*obj.Pk;
   
         end
+        
+        %Next expected state. Corresponds to f(x,v) in the litterature
         function transf = coord_turn(obj,xk)
            X=xk(1);
            Y=xk(2);
@@ -64,6 +70,8 @@ classdef ekftracker
            transf(4)=vx*sin(w*obj.T)+vy*cos(w*obj.T);
            transf(5)=w;
         end
+        
+        %Generate f-prime for the current state.
         function F=getfprime(obj,xk)
            X=xk(1);
            Y=xk(2);
@@ -73,6 +81,9 @@ classdef ekftracker
            A=[0 0 1 0 0;0 0 0 1 0;0 0 0 -w -vy;0 0 w 0 vx;0 0 0 0 0];
            F=expm(A*obj.T);
         end
+        
+        %Function for updating the measurement noise covariance based on
+        %anchor spread.
         function obj=measurementNoiseUpdate(obj,deltax,deltay,const,expo)
             obj.R=const*[1/((deltax)^expo) 0;0 1/(deltay^expo)];
         end

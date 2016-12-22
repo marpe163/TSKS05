@@ -1,7 +1,7 @@
 classdef kalmantracker
     %Implementation of a kalman filter for iterative filtering. Updates
     %with each new measurement.
-    %   Detailed explanation goes here
+   
     
     properties
         %Notation like in Gustafsson's sensor fusion book
@@ -34,10 +34,14 @@ classdef kalmantracker
            obj.Pk=p0;
            obj.G=g;
         end
+        
+        %Time update
         function obj=timeupdate(obj)
             obj.xk=obj.F*obj.xk;
             obj.Pk=obj.F*obj.Pk*obj.F'+obj.G*obj.Q*obj.G';
         end
+        
+        %Measurement update
         function obj=measurementupdate(obj,yk)
             obj.y=[obj.y yk];
             K=obj.Pk*obj.H'*inv(obj.H*obj.Pk*obj.H'+obj.R);
@@ -48,6 +52,8 @@ classdef kalmantracker
             obj.Pk=obj.Pk-K*obj.H*obj.Pk;
   
         end
+        
+        %Method for updating noise covariance based on spread of anchors.
         function obj=measurementNoiseUpdate(obj,deltax,deltay,const,expo)
             obj.R=const*[1/((deltax)^expo) 0;0 1/(deltay^expo)];
         end

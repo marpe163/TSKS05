@@ -31,11 +31,13 @@ classdef trajectory < handle
             
         end
         
+        %reset the trajectory
         function obj = reset_Trajectory(obj)
             obj.y = [];
             obj.traj = [];
         end
         
+        %Change smoothing
         function obj = change_smoothfilter(obj,new_filteringType,cutoffFreq_movAvgOrder)
             obj.filtertype = new_filteringType;
             
@@ -49,7 +51,7 @@ classdef trajectory < handle
             end
         end
         
-        
+        %Method for adding new data and perform smoothing.
         function obj=add_data(obj,inp_data)
             
             if strcmp(obj.filtertype,'movingAvg')
@@ -77,16 +79,20 @@ classdef trajectory < handle
                     obj.traj = [obj.traj moving_avg];
                 end
                 
+            %If we have a butterworth or chebychev    
             else
                 
                 obj.y=[obj.y inp_data];
-            
+                
+                %If we have obtained enough new data, perform smoothing
                 if length(obj.y)-25>length(obj.traj)
                     obj.traj=obj.rt_smooth(obj.y,obj.traj);
                 end
             end
             
         end
+        
+        %Function for smoothing the trajectory using butter or cheby.
         function smoothed_traj=rt_smooth(obj, data, old_traj)
             %real time smoothing
             lend = length(data);
