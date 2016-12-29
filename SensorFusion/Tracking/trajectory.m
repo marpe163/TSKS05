@@ -13,11 +13,8 @@ classdef trajectory < handle
     end
     
     methods
-%         function obj = trajectory(cutoffFreq,type)
-%             obj.cutoff=cutoffFreq;
-%             obj.filtertype=type;
-%         end
         
+        % trajectory constructor
         function obj = trajectory(type,cutoffFreq_movAvgOrder)
             obj.filtertype=type;
             
@@ -99,10 +96,9 @@ classdef trajectory < handle
             lenot = length(old_traj);
             smoothed_traj=[];
 
-            if lenot < 20 %marigin to not go out of bounds
+            if lenot < 20 %margin to not go out of bounds
                 smoothed_traj = obj.smooth_trajectory(5,obj.cutoff,data,obj.filtertype);
             elseif lend-35>lenot
-%%%%%%%%%%%%%%% lyckas aldrig komma hit?
                 tmpvec=[old_traj(1:2,(lenot-15):lenot) data(1:2, lenot+1:end)];
                 tmpvec=obj.smooth_trajectory(5,obj.cutoff,tmpvec,obj.filtertype);
                 smoothed_traj=[old_traj tmpvec(1:2,lenot+1:end-5)];
